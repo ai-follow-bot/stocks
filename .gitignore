@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual env
+.venv/
+venv/
+env/
+.env
+
+# Claude local settings (per-machine permissions)
+.claude/settings.local.json
+
+# Runtime output (reports, caches, logs)
+output/
+*.log
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp

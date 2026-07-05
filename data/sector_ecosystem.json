@@ -1,0 +1,619 @@
+{
+  "metadata": {
+    "version": "2.0.0",
+    "description": "AI算力基础设施完整产业链生态",
+    "total_sectors": 16,
+    "supply_chain_levels": 4
+  },
+  "ccl": {
+    "name": "覆铜板/CCL",
+    "tier": 1,
+    "description": "PCB核心基材，高速覆铜板决定PCB性能",
+    "include_sectors": [
+      "ccl"
+    ],
+    "upstream": [],
+    "downstream": [
+      "pcb"
+    ],
+    "related": [
+      "copper_foil",
+      "fiber_glass"
+    ],
+    "key_products": [
+      "高速覆铜板",
+      "超低损耗材料",
+      "高Tg材料"
+    ],
+    "cost_structure": "铜箔40%, 玻纤布25%, 树脂25%, 其他10%"
+  },
+  "copper_foil": {
+    "name": "铜箔",
+    "tier": 1,
+    "description": "锂电铜箔+电子铜箔，PCB关键材料",
+    "include_sectors": [
+      "copper_foil"
+    ],
+    "upstream": [],
+    "downstream": [
+      "ccl",
+      "pcb"
+    ],
+    "related": [
+      "ccl"
+    ],
+    "key_products": [
+      "电子铜箔",
+      "锂电铜箔",
+      "压延铜箔"
+    ]
+  },
+  "optical_chip": {
+    "name": "光芯片",
+    "tier": 1,
+    "description": "激光器芯片、探测器芯片，光模块核心",
+    "include_sectors": [
+      "optical_chip"
+    ],
+    "upstream": [],
+    "downstream": [
+      "optical_module",
+      "ocs"
+    ],
+    "related": [
+      "optical_module"
+    ],
+    "key_products": [
+      "激光器芯片",
+      "探测器芯片",
+      "调制器芯片",
+      "硅光芯片"
+    ],
+    "technologies": [
+      "InP",
+      "GaAs",
+      "硅光",
+      "EML",
+      "VCSEL"
+    ]
+  },
+  "hbm_components": {
+    "name": "HBM颗粒/材料",
+    "tier": 1,
+    "description": "HBM核心DRAM颗粒、TSV封装材料",
+    "include_sectors": [
+      "hbm_components"
+    ],
+    "upstream": [],
+    "downstream": [
+      "storage"
+    ],
+    "related": [
+      "storage"
+    ],
+    "key_products": [
+      "DRAM颗粒",
+      "TSV硅通孔",
+      "封装基板",
+      "底部填充胶"
+    ]
+  },
+  "cooling_components": {
+    "name": "液冷零部件",
+    "tier": 1,
+    "description": "冷却液、快接头、泵阀、换热器",
+    "include_sectors": [
+      "cooling_components"
+    ],
+    "upstream": [],
+    "downstream": [
+      "liquid_cooling"
+    ],
+    "related": [
+      "liquid_cooling"
+    ],
+    "key_products": [
+      "冷却液",
+      "快接头",
+      "CDU",
+      "冷板",
+      "浸没液"
+    ]
+  },
+  "pcb": {
+    "name": "PCB/封装基板",
+    "tier": 2,
+    "description": "AI服务器PCB、IC载板、HDI",
+    "include_sectors": [
+      "pcb",
+      "ccl",
+      "copper_foil"
+    ],
+    "upstream": [
+      "ccl",
+      "copper_foil"
+    ],
+    "downstream": [
+      "optical_module",
+      "ai_server",
+      "storage"
+    ],
+    "related": [
+      "ccl",
+      "chiplet"
+    ],
+    "key_products": [
+      "高多层板(18-30层)",
+      "IC载板",
+      "HDI",
+      "FCBGA"
+    ],
+    "applications": [
+      "AI服务器",
+      "交换机",
+      "GPU加速卡"
+    ]
+  },
+  "optical_module": {
+    "name": "光模块",
+    "tier": 2,
+    "description": "800G/1.6T光模块，AI数据中心光互连",
+    "include_sectors": [
+      "optical_module",
+      "optical_chip",
+      "pcb"
+    ],
+    "upstream": [
+      "optical_chip",
+      "pcb"
+    ],
+    "downstream": [
+      "ai_server",
+      "switch"
+    ],
+    "related": [
+      "optical_chip",
+      "ocs",
+      "fiber_optic"
+    ],
+    "key_products": [
+      "800G光模块",
+      "1.6T光模块",
+      "硅光模块",
+      "CPO"
+    ],
+    "technologies": [
+      "DSP",
+      "PAM4",
+      "硅光",
+      "LPO",
+      "CPO"
+    ]
+  },
+  "ocs": {
+    "name": "OCS光交换",
+    "tier": 2,
+    "description": "光路交换机，谷歌数据中心核心设备",
+    "include_sectors": [
+      "ocs",
+      "optical_chip",
+      "optical_module"
+    ],
+    "upstream": [
+      "optical_chip",
+      "fiber_optic"
+    ],
+    "downstream": [
+      "ai_server",
+      "datacenter"
+    ],
+    "related": [
+      "optical_module",
+      "optical_chip"
+    ],
+    "key_products": [
+      "MEMS光开关",
+      "光纤阵列",
+      "OCS设备"
+    ],
+    "applications": [
+      "谷歌TPU集群",
+      "数据中心光互连"
+    ]
+  },
+  "storage": {
+    "name": "存储/HBM",
+    "tier": 2,
+    "description": "HBM3E、企业级SSD、内存模组",
+    "include_sectors": [
+      "storage",
+      "hbm_components"
+    ],
+    "upstream": [
+      "hbm_components"
+    ],
+    "downstream": [
+      "ai_server",
+      "gpu"
+    ],
+    "related": [
+      "hbm_components",
+      "ai_server"
+    ],
+    "key_products": [
+      "HBM3E",
+      "企业级SSD",
+      "DDR5内存",
+      "CXL内存"
+    ],
+    "technologies": [
+      "TSV",
+      "2.5D封装",
+      "CXL"
+    ]
+  },
+  "liquid_cooling": {
+    "name": "液冷散热",
+    "tier": 2,
+    "description": "数据中心液冷系统，CDU、冷板、浸没式",
+    "include_sectors": [
+      "liquid_cooling",
+      "cooling_components"
+    ],
+    "upstream": [
+      "cooling_components"
+    ],
+    "downstream": [
+      "ai_server",
+      "datacenter"
+    ],
+    "related": [
+      "cooling_components",
+      "power_supply"
+    ],
+    "key_products": [
+      "CDU",
+      "冷板",
+      "浸没式液冷",
+      "液冷机柜"
+    ],
+    "technologies": [
+      "冷板式",
+      "浸没式",
+      "喷淋式"
+    ]
+  },
+  "chiplet": {
+    "name": "Chiplet/先进封装",
+    "tier": 2,
+    "description": "先进封装技术，2.5D/3D封装",
+    "include_sectors": [
+      "chiplet",
+      "pcb"
+    ],
+    "upstream": [
+      "pcb"
+    ],
+    "downstream": [
+      "ai_server",
+      "gpu"
+    ],
+    "related": [
+      "pcb",
+      "storage"
+    ],
+    "key_products": [
+      "CoWoS",
+      "EMIB",
+      "UCIe互联",
+      "芯粒集成"
+    ],
+    "applications": [
+      "GPU",
+      "AI芯片",
+      "HBM集成"
+    ]
+  },
+  "switch": {
+    "name": "交换机",
+    "tier": 3,
+    "description": "数据中心交换机，800G/1.6T端口",
+    "include_sectors": [
+      "switch",
+      "optical_module",
+      "pcb"
+    ],
+    "upstream": [
+      "optical_module",
+      "pcb",
+      "chiplet",
+      "mlcc"
+    ],
+    "downstream": [
+      "ai_server",
+      "datacenter"
+    ],
+    "related": [
+      "optical_module",
+      "ocs"
+    ],
+    "key_products": [
+      "800G交换机",
+      "1.6T交换机",
+      "白盒交换机"
+    ],
+    "vendors": [
+      "思科",
+      "Arista",
+      "英伟达IB",
+      "华为"
+    ]
+  },
+  "ai_server": {
+    "name": "AI服务器",
+    "tier": 4,
+    "description": "AI服务器整机，GPU服务器",
+    "include_sectors": [
+      "ai_server",
+      "pcb",
+      "storage",
+      "optical_module",
+      "liquid_cooling"
+    ],
+    "upstream": [
+      "pcb",
+      "storage",
+      "optical_module",
+      "liquid_cooling",
+      "chiplet",
+      "mlcc"
+    ],
+    "downstream": [
+      "datacenter",
+      "cloud"
+    ],
+    "related": [
+      "pcb",
+      "storage",
+      "optical_module",
+      "liquid_cooling",
+      "switch"
+    ],
+    "key_products": [
+      "GPU服务器",
+      "TPU集群",
+      "训练服务器",
+      "推理服务器"
+    ],
+    "vendors": [
+      "英伟达",
+      "超微",
+      "戴尔",
+      "HPE",
+      "浪潮",
+      "工业富联"
+    ]
+  },
+  "datacenter": {
+    "name": "数据中心/AIDC",
+    "tier": 4,
+    "description": "智算中心，AI数据中心",
+    "include_sectors": [
+      "datacenter",
+      "ai_server",
+      "liquid_cooling"
+    ],
+    "upstream": [
+      "ai_server",
+      "liquid_cooling",
+      "switch",
+      "power_supply"
+    ],
+    "downstream": [
+      "cloud",
+      "ai_application"
+    ],
+    "related": [
+      "ai_server",
+      "liquid_cooling",
+      "power_supply",
+      "mlcc"
+    ],
+    "key_metrics": [
+      "PUE",
+      "算力密度",
+      "单机柜功率"
+    ]
+  },
+  "power_supply": {
+    "name": "电源/供电",
+    "tier": 3,
+    "description": "AI服务器电源，数据中心供电",
+    "include_sectors": [
+      "power_supply"
+    ],
+    "upstream": [],
+    "downstream": [
+      "ai_server",
+      "datacenter"
+    ],
+    "related": [
+      "ai_server",
+      "datacenter"
+    ],
+    "key_products": [
+      "PSU",
+      "HVDC",
+      "UPS",
+      "BBU备用电源"
+    ]
+  },
+  "mlcc": {
+    "name": "MLCC",
+    "tier": 2,
+    "description": "多层陶瓷电容器，AI服务器/5G/汽车电子用量激增，高容值/车规级国产替代",
+    "include_sectors": [
+      "mlcc",
+      "ccl",
+      "copper_foil"
+    ],
+    "upstream": [
+      "copper_foil",
+      "ccl"
+    ],
+    "downstream": [
+      "ai_server",
+      "switch",
+      "datacenter"
+    ],
+    "related": [
+      "chiplet",
+      "storage",
+      "power_supply"
+    ],
+    "key_products": [
+      "高容值MLCC",
+      "车规级MLCC",
+      "微型MLCC (0201/01005)",
+      "RF MLCC",
+      "高可靠MLCC"
+    ],
+    "technologies": [
+      "BME (Base Metal Electrode)",
+      "Ni电极",
+      "薄层化",
+      "陶瓷粉体分散",
+      "共烧技术"
+    ]
+  },
+  "玻璃基板": {
+    "name": "玻璃基板",
+    "tier": 2,
+    "description": "用户自定义板块（待补充产业链数据）",
+    "include_sectors": [
+      "玻璃基板"
+    ],
+    "upstream": [],
+    "downstream": [],
+    "related": [],
+    "key_products": [],
+    "technologies": []
+  },
+  "TGV": {
+    "name": "TGV",
+    "tier": 2,
+    "description": "用户自定义板块（待补充产业链数据）",
+    "include_sectors": [
+      "TGV"
+    ],
+    "upstream": [],
+    "downstream": [],
+    "related": [],
+    "key_products": [],
+    "technologies": []
+  },
+  "CPO": {
+    "name": "CPO",
+    "tier": 2,
+    "description": "用户自定义板块（待补充产业链数据）",
+    "include_sectors": [
+      "CPO"
+    ],
+    "upstream": [],
+    "downstream": [],
+    "related": [],
+    "key_products": [],
+    "technologies": []
+  },
+  "光模块": {
+    "name": "光模块",
+    "tier": 2,
+    "description": "用户自定义板块（待补充产业链数据）",
+    "include_sectors": [
+      "光模块"
+    ],
+    "upstream": [],
+    "downstream": [],
+    "related": [],
+    "key_products": [],
+    "technologies": []
+  },
+  "HBN": {
+    "name": "HBN",
+    "tier": 2,
+    "description": "用户自定义板块（待补充产业链数据）",
+    "include_sectors": [
+      "HBN"
+    ],
+    "upstream": [],
+    "downstream": [],
+    "related": [],
+    "key_products": [],
+    "technologies": []
+  },
+  "HBM": {
+    "name": "HBM",
+    "tier": 2,
+    "description": "用户自定义板块（待补充产业链数据）",
+    "include_sectors": [
+      "HBM"
+    ],
+    "upstream": [],
+    "downstream": [],
+    "related": [],
+    "key_products": [],
+    "technologies": []
+  },
+  "功率半导体": {
+    "name": "功率半导体",
+    "tier": 2,
+    "description": "用户自定义板块（待补充产业链数据）",
+    "include_sectors": [
+      "功率半导体"
+    ],
+    "upstream": [],
+    "downstream": [],
+    "related": [],
+    "key_products": [],
+    "technologies": []
+  },
+  "机器人": {
+    "name": "机器人",
+    "tier": 2,
+    "description": "用户自定义板块（待补充产业链数据）",
+    "include_sectors": [
+      "机器人"
+    ],
+    "upstream": [],
+    "downstream": [],
+    "related": [],
+    "key_products": [],
+    "technologies": []
+  },
+  "物理AI": {
+    "name": "物理AI",
+    "tier": 2,
+    "description": "用户自定义板块（待补充产业链数据）",
+    "include_sectors": [
+      "物理AI"
+    ],
+    "upstream": [],
+    "downstream": [],
+    "related": [],
+    "key_products": [],
+    "technologies": []
+  },
+  "薄膜铌酸锂": {
+    "name": "薄膜铌酸锂",
+    "tier": 2,
+    "description": "用户自定义板块（待补充产业链数据）",
+    "include_sectors": [
+      "薄膜铌酸锂"
+    ],
+    "upstream": [],
+    "downstream": [],
+    "related": [],
+    "key_products": [],
+    "technologies": []
+  }
+}

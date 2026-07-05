@@ -1,0 +1,21 @@
+# 产业链投资挖掘 Agent - 依赖清单
+# Python 3.11+ 推荐
+
+# Tavily AI 深度搜索
+tavily-python>=0.7.0
+
+# 智谱 BigModel web_search_pro（Tavily 兜底搜索）
+zhipuai>=2.0.0
+
+# LLM 综合（Anthropic Claude）
+anthropic>=0.40.0
+
+# LLM 综合（OpenAI 兼容：Kimi/Moonshot/Deepseek/GLM 等）
+openai>=1.50.0
+
+# A 股数据：行情、新闻、股票列表
+akshare>=1.12.0
+
+# ===== 可选 =====
+# 备用实时行情源（默认用 akshare）
+# easyquotation>=0.7.5

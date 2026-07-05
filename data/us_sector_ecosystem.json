@@ -1,0 +1,425 @@
+{
+  "metadata": {
+    "version": "1.2.0",
+    "description": "美股科技产业链生态（14 板块：半导体/CPU/GPU/TPU/内存/光通信/CPO/AI&云/消费电子 + MLCC/CCL/PCB/材料/液冷）",
+    "market": "us",
+    "total_sectors": 14
+  },
+  "semiconductors": {
+    "name": "半导体",
+    "tier": 1,
+    "description": "全球半导体设计/制造/设备/存储全链条，覆盖 GPU/CPU/HBM/光刻机/EDA/晶圆代工",
+    "include_sectors": ["semiconductors"],
+    "upstream": [],
+    "downstream": ["cpu", "gpu", "tpu", "memory", "optical_communication", "ai_cloud", "consumer_electronics"],
+    "related": ["memory", "cpu", "gpu"],
+    "key_products": [
+      "GPU/CPU",
+      "HBM",
+      "光刻机",
+      "EDA/IP",
+      "晶圆代工",
+      "射频/模拟芯片"
+    ],
+    "technologies": [
+      "3nm/2nm 制程",
+      "CoWoS 先进封装",
+      "HBM3e",
+      "EUV 光刻",
+      "Chiplet"
+    ],
+    "applications": [
+      "AI 训练/推理",
+      "数据中心",
+      "消费电子终端",
+      "汽车电子"
+    ],
+    "cost_structure": "研发 30%, 晶圆 25%, 设备折旧 20%, 其他 25%"
+  },
+  "cpu": {
+    "name": "CPU",
+    "tier": 2,
+    "description": "通用处理器设计，覆盖服务器/桌面/移动 CPU 及 IP 授权",
+    "include_sectors": ["cpu"],
+    "upstream": ["semiconductors"],
+    "downstream": ["ai_cloud", "consumer_electronics"],
+    "related": ["gpu", "semiconductors"],
+    "key_products": [
+      "服务器 CPU",
+      "桌面/笔记本 CPU",
+      "移动 SoC",
+      "CPU IP 授权"
+    ],
+    "technologies": [
+      "x86 / Arm 架构",
+      "3nm/5nm 制程",
+      "多核 + 高带宽互联",
+      "Chiplet 封装",
+      "端侧 AI 推理核"
+    ],
+    "applications": [
+      "数据中心服务器",
+      "PC/笔记本",
+      "智能手机/平板",
+      "车载计算"
+    ],
+    "cost_structure": "研发 35%, 晶圆 30%, 销售 15%, 其他 20%"
+  },
+  "gpu": {
+    "name": "GPU",
+    "tier": 2,
+    "description": "图形处理器与 AI 加速卡设计，训练/推理算力核心",
+    "include_sectors": ["gpu"],
+    "upstream": ["semiconductors", "memory"],
+    "downstream": ["ai_cloud"],
+    "related": ["tpu", "semiconductors", "memory"],
+    "key_products": [
+      "AI 训练 GPU",
+      "推理加速卡",
+      "消费级 GPU",
+      "专业图形 GPU"
+    ],
+    "technologies": [
+      "Tensor Core",
+      "HBM3e + CoWoS",
+      "NVLink/NVSwitch",
+      "CUDA 生态",
+      "液冷散热"
+    ],
+    "applications": [
+      "大模型训练",
+      "推理服务",
+      "科学计算",
+      "游戏/专业图形"
+    ],
+    "cost_structure": "研发 30%, 晶圆+HBM 45%, 封装 10%, 其他 15%"
+  },
+  "tpu": {
+    "name": "AI 专用 ASIC/TPU",
+    "tier": 2,
+    "description": "AI 推理/训练专用加速器（ASIC/TPU），含云厂商自研与第三方定制",
+    "include_sectors": ["tpu"],
+    "upstream": ["semiconductors", "memory"],
+    "downstream": ["ai_cloud"],
+    "related": ["gpu", "ai_cloud"],
+    "key_products": [
+      "云厂商自研 TPU/ASIC",
+      "第三方定制 ASIC",
+      "推理专用芯片",
+      "AI 网络芯片"
+    ],
+    "technologies": [
+      "领域特定架构 DSA",
+      " systolic array",
+      "HBM + 先进封装",
+      "高速片间互联",
+      "稀疏化/量化推理"
+    ],
+    "applications": [
+      "云厂商内部推理/训练",
+      "推理即服务",
+      "边缘 AI",
+      "自动驾驶"
+    ],
+    "cost_structure": "研发 40%, 定制晶圆 35%, 封装 10%, 其他 15%"
+  },
+  "memory": {
+    "name": "内存与存储芯片",
+    "tier": 2,
+    "description": "DRAM/NAND/HBM 存储芯片设计与制造，AI 算力链条关键瓶颈",
+    "include_sectors": ["memory"],
+    "upstream": ["semiconductors"],
+    "downstream": ["gpu", "tpu", "ai_cloud", "consumer_electronics"],
+    "related": ["semiconductors", "gpu"],
+    "key_products": [
+      "HBM（高带宽内存）",
+      "DDR5/LPDDR5 DRAM",
+      "3D NAND Flash",
+      "NOR Flash",
+      "存储控制器"
+    ],
+    "technologies": [
+      "HBM3e/4",
+      "3D NAND 300+ 层",
+      "EUV DRAM",
+      "TSV 硅通孔",
+      "CXL 内存扩展"
+    ],
+    "applications": [
+      "AI 加速卡显存",
+      "服务器主存",
+      "手机/PC 存储",
+      "汽车/工业存储"
+    ],
+    "cost_structure": "晶圆 45%, 设备折旧 25%, 研发 15%, 其他 15%"
+  },
+  "optical_communication": {
+    "name": "光通信",
+    "tier": 2,
+    "description": "光模块/光芯片/光器件/光设备，AI 数据中心互联核心",
+    "include_sectors": ["optical_communication"],
+    "upstream": ["semiconductors"],
+    "downstream": ["cpo", "ai_cloud"],
+    "related": ["cpo", "semiconductors"],
+    "key_products": [
+      "400G/800G/1.6T 光模块",
+      "DFB/EML/VCSEL 光芯片",
+      "硅光芯片",
+      "光放大器/光器件",
+      "WDM 波分设备"
+    ],
+    "technologies": [
+      "硅光集成",
+      "800G PAM4",
+      "CPO 共封装",
+      "LPO 线性直驱",
+      "薄膜铌酸锂调制器"
+    ],
+    "applications": [
+      "AI 数据中心互联",
+      "电信骨干网",
+      "5G 承载",
+      "数据中心 DCI"
+    ],
+    "cost_structure": "光芯片 30%, 封装 25%, 研发 20%, 其他 25%"
+  },
+  "cpo": {
+    "name": "共封装光学（CPO）",
+    "tier": 3,
+    "description": "Co-Packaged Optics，光引擎与交换芯片共封装，下一代数据中心互联",
+    "include_sectors": ["cpo"],
+    "upstream": ["optical_communication", "semiconductors"],
+    "downstream": ["ai_cloud"],
+    "related": ["optical_communication", "semiconductors"],
+    "key_products": [
+      "CPO 交换机",
+      "光引擎（OE）",
+      "硅光芯片",
+      "2.5D/3D 封装基板",
+      "光纤跳线/连接器"
+    ],
+    "technologies": [
+      "光-电共封装",
+      "硅光 + CMOS 集成",
+      "TSV/3D 堆叠",
+      "850nm/1310nm 激光",
+      "热管理"
+    ],
+    "applications": [
+      "AI 训练集群",
+      "超大规模数据中心",
+      "HPC"
+    ],
+    "cost_structure": "光引擎 40%, 封装 25%, 研发 20%, 其他 15%"
+  },
+  "mlcc": {
+    "name": "MLCC 片式多层陶瓷电容",
+    "tier": 3,
+    "description": "多层陶瓷电容器，AI 服务器/手机/汽车电子关键被动元件",
+    "include_sectors": ["mlcc"],
+    "upstream": ["materials", "semiconductors"],
+    "downstream": ["ai_cloud", "consumer_electronics"],
+    "related": ["ccl", "pcb", "materials"],
+    "key_products": [
+      "高容 MLCC（0402/0603）",
+      "车规 MLCC",
+      "高压 MLCC",
+      "微型 MLCC"
+    ],
+    "technologies": [
+      "0201 极小封装",
+      "镍电极内电极",
+      "高温烧结",
+      "01005 微型化",
+      "高介电常数瓷粉"
+    ],
+    "applications": [
+      "AI 服务器主板",
+      "智能手机",
+      "汽车电子",
+      "工业控制"
+    ],
+    "cost_structure": "瓷粉 30%, 电极 20%, 烧结折旧 25%, 其他 25%"
+  },
+  "ccl": {
+    "name": "覆铜板（CCL）",
+    "tier": 3,
+    "description": "覆铜板，PCB 上游基材，AI 服务器高多层/高频高速 PCB 关键材料",
+    "include_sectors": ["ccl"],
+    "upstream": ["materials"],
+    "downstream": ["pcb"],
+    "related": ["pcb", "materials"],
+    "key_products": [
+      "高 Tg FR-4",
+      "低损耗高速 CCL（M4/M6/M7）",
+      "高频 CCL（PTFE/碳氢）",
+      "IC 封装基板用 CCL",
+      "挠性 CCL（FCCL）"
+    ],
+    "technologies": [
+      "超低损耗树脂",
+      "低轮廓铜箔",
+      "高玻璃化温度 Tg",
+      "低介电常数 Dk/Df",
+      "无卤阻燃"
+    ],
+    "applications": [
+      "AI 服务器高多层板",
+      "IC 封装基板",
+      "高速交换机 PCB",
+      "5G 基站"
+    ],
+    "cost_structure": "树脂 40%, 铜箔 25%, 玻纤布 15%, 其他 20%"
+  },
+  "pcb": {
+    "name": "印制电路板（PCB）",
+    "tier": 3,
+    "description": "印制电路板，AI 服务器/交换机/高端消费电子承载基板",
+    "include_sectors": ["pcb"],
+    "upstream": ["ccl", "materials"],
+    "downstream": ["ai_cloud", "consumer_electronics"],
+    "related": ["ccl", "materials"],
+    "key_products": [
+      "高多层板（>20 层）",
+      "HDI 板",
+      "IC 封装基板（IC Substrate）",
+      "高频高速板",
+      "挠性板 FPC"
+    ],
+    "technologies": [
+      "mSAP 半加成法",
+      "任意层 HDI",
+      "ABF 载板",
+      "激光钻孔",
+      "低损耗介质叠层"
+    ],
+    "applications": [
+      "AI 服务器主板/UBB",
+      "ASIC 封装基板",
+      "交换机线卡",
+      "智能手机主板"
+    ],
+    "cost_structure": "CCL 35%, 工艺折旧 25%, 研发 15%, 其他 25%"
+  },
+  "materials": {
+    "name": "电子材料",
+    "tier": 2,
+    "description": "电子级基础材料：树脂/铜箔/玻纤/瓷粉/靶材/特种气体，产业链上游",
+    "include_sectors": ["materials"],
+    "upstream": [],
+    "downstream": ["ccl", "pcb", "mlcc", "semiconductors"],
+    "related": ["ccl", "pcb", "mlcc"],
+    "key_products": [
+      "电子级树脂（环氧/PI/PTFE）",
+      "电解铜箔/压延铜箔",
+      "电子级玻纤布",
+      "钛酸钡瓷粉",
+      "溅射靶材",
+      "电子特种气体"
+    ],
+    "technologies": [
+      "超低损耗树脂合成",
+      "极薄铜箔（<6μm）",
+      "高纯度瓷粉",
+      "高纯靶材提纯",
+      "电子级气体纯化"
+    ],
+    "applications": [
+      "CCL 基材",
+      "PCB 导体层",
+      "MLCC 介质",
+      "晶圆制造"
+    ],
+    "cost_structure": "原材料 50%, 研发 15%, 能源 15%, 其他 20%"
+  },
+  "liquid_cooling": {
+    "name": "液冷散热",
+    "tier": 3,
+    "description": "液冷散热方案，AI 服务器高功耗必备，含冷板/CDU/快插/浸没式",
+    "include_sectors": ["liquid_cooling"],
+    "upstream": ["materials", "semiconductors"],
+    "downstream": ["ai_cloud"],
+    "related": ["semiconductors", "ai_cloud"],
+    "key_products": [
+      "冷板（Cold Plate）",
+      "CDU 冷量分配单元",
+      "QD 快插接头",
+      "浸没式冷却液",
+      "液冷服务器整机"
+    ],
+    "technologies": [
+      "微通道冷板",
+      "相变浸没式",
+      "氟化液工质",
+      "零泄漏快插",
+      "机柜级液冷"
+    ],
+    "applications": [
+      "AI 训练服务器",
+      "推理集群",
+      "HPC",
+      "数据中心边缘"
+    ],
+    "cost_structure": "材料 40%, 加工 25%, 研发 15%, 装配 20%"
+  },
+  "ai_cloud": {
+    "name": "AI 与云计算",
+    "tier": 2,
+    "description": "云基础设施 + AI 平台 + SaaS 应用，包括 IaaS/PaaS/SaaS 三层",
+    "include_sectors": ["ai_cloud"],
+    "upstream": ["semiconductors", "gpu", "tpu", "memory", "optical_communication", "cpo", "mlcc", "pcb", "liquid_cooling"],
+    "downstream": ["consumer_electronics"],
+    "related": ["semiconductors", "gpu"],
+    "key_products": [
+      "云算力（GPU 实例）",
+      "大模型 API",
+      "SaaS 订阅",
+      "数据库/分析",
+      "协同办公"
+    ],
+    "technologies": [
+      "GPU 集群",
+      "Kubernetes",
+      "Transformer",
+      "RAG",
+      "向量数据库"
+    ],
+    "applications": [
+      "企业 IT",
+      "AI 应用开发",
+      "数据分析",
+      "办公协同"
+    ],
+    "cost_structure": "数据中心 30%, 研发 25%, 销售 20%, 其他 25%"
+  },
+  "consumer_electronics": {
+    "name": "消费电子",
+    "tier": 3,
+    "description": "智能手机/PC/可穿戴/智能家居终端，AI 端侧落地的主战场",
+    "include_sectors": ["consumer_electronics"],
+    "upstream": ["semiconductors", "cpu", "memory", "ai_cloud"],
+    "downstream": [],
+    "related": ["semiconductors", "cpu"],
+    "key_products": [
+      "智能手机",
+      "PC/平板",
+      "TWS 耳机",
+      "智能音箱",
+      "可穿戴/AR-VR"
+    ],
+    "technologies": [
+      "SoC 集成",
+      "OLED/Micro-OLED",
+      "UWB",
+      "AI 端侧推理",
+      "折叠屏"
+    ],
+    "applications": [
+      "消费终端",
+      "内容生态",
+      "健康监测",
+      "智能家庭"
+    ],
+    "cost_structure": "BOM 50%, 渠道 20%, 研发 15%, 营销 15%"
+  }
+}

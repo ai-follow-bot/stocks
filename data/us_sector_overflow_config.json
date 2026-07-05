@@ -1,0 +1,236 @@
+{
+  "semiconductors": {
+    "sector_name": "半导体",
+    "leaders": [
+      {"code": "NVDA", "name": "NVIDIA Corp", "symbol": "NVDA.O"},
+      {"code": "AVGO", "name": "Broadcom Inc", "symbol": "AVGO.O"}
+    ],
+    "second_tier": [
+      {"code": "AMD", "name": "Advanced Micro Devices", "symbol": "AMD.O", "catalyst": "MI400 AI 加速卡抢份额", "tech_option": false},
+      {"code": "INTC", "name": "Intel Corp", "symbol": "INTC.O", "catalyst": "18A 制程 + 代工业务重估", "tech_option": false},
+      {"code": "TSM", "name": "Taiwan Semiconductor ADR", "symbol": "TSM.N", "catalyst": "3nm/2nm + CoWoS 产能", "tech_option": false},
+      {"code": "ASML", "name": "ASML Holding ADR", "symbol": "ASML.O", "catalyst": "EUV/High-NA 周期", "tech_option": false},
+      {"code": "QCOM", "name": "Qualcomm Inc", "symbol": "QCOM.O", "catalyst": "车载/PC 端侧 AI", "tech_option": false},
+      {"code": "TXN", "name": "Texas Instruments", "symbol": "TXN.O", "catalyst": "模拟芯片周期复苏", "tech_option": false},
+      {"code": "MRVL", "name": "Marvell Technology", "symbol": "MRVL.O", "catalyst": "定制 ASIC 高速增长", "tech_option": false}
+    ],
+    "tech_option_stocks": [
+      {"code": "ARM", "name": "Arm Holdings", "symbol": "ARM.O", "tech": "Armv9 + 端侧 AI IP", "stage": "授权费提升周期", "base_pe": 100, "success_pe": 200, "tam_cn": "300亿", "success_prob": 0.55},
+      {"code": "SMCI", "name": "Super Micro Computer", "symbol": "SMCI.O", "tech": "液冷 AI 服务器", "stage": "份额扩张", "base_pe": 20, "success_pe": 50, "tam_cn": "200亿", "success_prob": 0.5}
+    ],
+    "leader_pe_threshold": 60,
+    "leader_cap_threshold": 20000
+  },
+  "cpu": {
+    "sector_name": "CPU",
+    "leaders": [
+      {"code": "INTC", "name": "Intel Corp", "symbol": "INTC.O"},
+      {"code": "AMD", "name": "Advanced Micro Devices", "symbol": "AMD.O"}
+    ],
+    "second_tier": [
+      {"code": "AAPL", "name": "Apple Inc", "symbol": "AAPL.O", "catalyst": "M 系列自研芯片迭代", "tech_option": false},
+      {"code": "QCOM", "name": "Qualcomm Inc", "symbol": "QCOM.O", "catalyst": "Snapdragon X Elite 抢 PC", "tech_option": false},
+      {"code": "ARM", "name": "Arm Holdings", "symbol": "ARM.O", "catalyst": "Armv9 授权费提升", "tech_option": false}
+    ],
+    "tech_option_stocks": [
+      {"code": "ARM", "name": "Arm Holdings", "symbol": "ARM.O", "tech": "Armv9 CPU IP 授权", "stage": "授权费提升", "base_pe": 100, "success_pe": 200, "tam_cn": "300亿", "success_prob": 0.55}
+    ],
+    "leader_pe_threshold": 40,
+    "leader_cap_threshold": 15000
+  },
+  "gpu": {
+    "sector_name": "GPU",
+    "leaders": [
+      {"code": "NVDA", "name": "NVIDIA Corp", "symbol": "NVDA.O"}
+    ],
+    "second_tier": [
+      {"code": "AMD", "name": "Advanced Micro Devices", "symbol": "AMD.O", "catalyst": "MI400 抢训练份额", "tech_option": false},
+      {"code": "INTC", "name": "Intel Corp", "symbol": "INTC.O", "catalyst": "Gaudi 3 推理", "tech_option": false}
+    ],
+    "tech_option_stocks": [
+      {"code": "SMCI", "name": "Super Micro Computer", "symbol": "SMCI.O", "tech": "GPU 服务器集成", "stage": "份额扩张", "base_pe": 20, "success_pe": 50, "tam_cn": "200亿", "success_prob": 0.5}
+    ],
+    "leader_pe_threshold": 60,
+    "leader_cap_threshold": 30000
+  },
+  "tpu": {
+    "sector_name": "AI 专用 ASIC/TPU",
+    "leaders": [
+      {"code": "AVGO", "name": "Broadcom Inc", "symbol": "AVGO.O"},
+      {"code": "MRVL", "name": "Marvell Technology", "symbol": "MRVL.O"}
+    ],
+    "second_tier": [
+      {"code": "GOOG", "name": "Alphabet Inc-CL C", "symbol": "GOOG.O", "catalyst": "TPU 自研 + Gemini", "tech_option": false},
+      {"code": "META", "name": "Meta Platforms", "symbol": "META.O", "catalyst": "MTIA 推理 ASIC", "tech_option": false},
+      {"code": "AMD", "name": "Advanced Micro Devices", "symbol": "AMD.O", "catalyst": "定制 ASIC 业务", "tech_option": false}
+    ],
+    "tech_option_stocks": [
+      {"code": "MRVL", "name": "Marvell Technology", "symbol": "MRVL.O", "tech": "云厂商定制 ASIC", "stage": "项目量产", "base_pe": 40, "success_pe": 80, "tam_cn": "200亿", "success_prob": 0.5}
+    ],
+    "leader_pe_threshold": 50,
+    "leader_cap_threshold": 15000
+  },
+  "memory": {
+    "sector_name": "内存与存储芯片",
+    "leaders": [
+      {"code": "MU", "name": "Micron Technology", "symbol": "MU.O"}
+    ],
+    "second_tier": [
+      {"code": "WDC", "name": "Western Digital", "symbol": "WDC.O", "catalyst": "NAND 周期 + 企业 SSD", "tech_option": false},
+      {"code": "STX", "name": "Seagate Technology", "symbol": "STX.O", "catalyst": "HAMR 大容量 HDD", "tech_option": false},
+      {"code": "NXPI", "name": "NXP Semiconductors", "symbol": "NXPI.O", "catalyst": "车规存储 + 处理器", "tech_option": false}
+    ],
+    "tech_option_stocks": [
+      {"code": "GCT", "name": "GCT Semiconductor", "symbol": "GCT.O", "tech": "存储控制器 IC", "stage": "小盘成长", "base_pe": 30, "success_pe": 60, "tam_cn": "50亿", "success_prob": 0.3}
+    ],
+    "leader_pe_threshold": 25,
+    "leader_cap_threshold": 10000
+  },
+  "optical-communication": {
+    "sector_name": "光通信",
+    "leaders": [
+      {"code": "AVGO", "name": "Broadcom Inc", "symbol": "AVGO.O"},
+      {"code": "LITE", "name": "Lumentum Holdings", "symbol": "LITE.O"}
+    ],
+    "second_tier": [
+      {"code": "CIEN", "name": "Ciena Corp", "symbol": "CIEN.N", "catalyst": "800G/1.6T 城域 + DCI", "tech_option": false},
+      {"code": "MRVL", "name": "Marvell Technology", "symbol": "MRVL.O", "catalyst": "数据中心光 PHY", "tech_option": false},
+      {"code": "AAOI", "name": "Applied Optoelectronics", "symbol": "AAOI.O", "catalyst": "800G 光模块 + 数据中心", "tech_option": false},
+      {"code": "NPTN", "name": "NeoPhotonics", "symbol": "NPTN.N", "catalyst": "高速相干器件", "tech_option": false},
+      {"code": "IPG", "name": "IPG Photonics", "symbol": "IPGO.O", "catalyst": "高功率激光器", "tech_option": false}
+    ],
+    "tech_option_stocks": [
+      {"code": "POET", "name": "POET Technologies", "symbol": "POET.O", "tech": "硅光集成光引擎", "stage": "产品量产", "base_pe": 0, "success_pe": 80, "tam_cn": "100亿", "success_prob": 0.35},
+      {"code": "LITE", "name": "Lumentum Holdings", "symbol": "LITE.O", "tech": "EML + 硅光", "stage": "800G 放量", "base_pe": 30, "success_pe": 70, "tam_cn": "300亿", "success_prob": 0.5}
+    ],
+    "leader_pe_threshold": 35,
+    "leader_cap_threshold": 10000
+  },
+  "cpo": {
+    "sector_name": "共封装光学（CPO）",
+    "leaders": [
+      {"code": "AVGO", "name": "Broadcom Inc", "symbol": "AVGO.O"},
+      {"code": "MRVL", "name": "Marvell Technology", "symbol": "MRVL.O"}
+    ],
+    "second_tier": [
+      {"code": "LITE", "name": "Lumentum Holdings", "symbol": "LITE.O", "catalyst": "CPO 光引擎", "tech_option": false},
+      {"code": "AAOI", "name": "Applied Optoelectronics", "symbol": "AAOI.O", "catalyst": "CPO 光发射", "tech_option": false},
+      {"code": "CIEN", "name": "Ciena Corp", "symbol": "CIEN.N", "catalyst": "下一代 CPO 交换机", "tech_option": false}
+    ],
+    "tech_option_stocks": [
+      {"code": "POET", "name": "POET Technologies", "symbol": "POET.O", "tech": "CPO 光引擎平台", "stage": "客户验证", "base_pe": 0, "success_pe": 100, "tam_cn": "200亿", "success_prob": 0.35}
+    ],
+    "leader_pe_threshold": 50,
+    "leader_cap_threshold": 15000
+  },
+  "mlcc": {
+    "sector_name": "MLCC 片式多层陶瓷电容",
+    "leaders": [
+      {"code": "AVX", "name": "Kyocera AVX", "symbol": "AVX.O"}
+    ],
+    "second_tier": [
+      {"code": "KEM", "name": "KEMET Corp", "symbol": "KEM.N", "catalyst": "车规 + 高容 MLCC", "tech_option": false},
+      {"code": "VISH", "name": "Vishay Intertechnology", "symbol": "VSH.N", "catalyst": "被动元件周期复苏", "tech_option": false}
+    ],
+    "tech_option_stocks": [],
+    "leader_pe_threshold": 20,
+    "leader_cap_threshold": 5000
+  },
+  "ccl": {
+    "sector_name": "覆铜板（CCL）",
+    "leaders": [
+      {"code": "Rogers", "name": "Rogers Corp", "symbol": "ROG.N"}
+    ],
+    "second_tier": [
+      {"code": "MRC", "name": "Mitsubishi Chemical ADR", "symbol": "MTLHY.PK", "catalyst": "高速树脂", "tech_option": false}
+    ],
+    "tech_option_stocks": [],
+    "leader_pe_threshold": 25,
+    "leader_cap_threshold": 5000
+  },
+  "pcb": {
+    "sector_name": "印制电路板（PCB）",
+    "leaders": [
+      {"code": "TEL", "name": "TE Connectivity", "symbol": "TEL.N"}
+    ],
+    "second_tier": [
+      {"code": "FLEX", "name": "Flex Ltd", "symbol": "FLEX.O", "catalyst": "高端 PCB + EMS", "tech_option": false},
+      {"code": "SANM", "name": "Sanmina Corp", "symbol": "SANM.O", "catalyst": "高多层板 + 服务器", "tech_option": false},
+      {"code": "BHE", "name": "Benchmark Electronics", "symbol": "BHE.N", "catalyst": "AI 服务器 PCB", "tech_option": false}
+    ],
+    "tech_option_stocks": [],
+    "leader_pe_threshold": 25,
+    "leader_cap_threshold": 8000
+  },
+  "materials": {
+    "sector_name": "电子材料",
+    "leaders": [
+      {"code": "DD", "name": "DuPont de Nemours", "symbol": "DD.N"},
+      {"code": "EMN", "name": "Eastman Chemical", "symbol": "EMN.N"}
+    ],
+    "second_tier": [
+      {"code": "FCX", "name": "Freeport-McMoRan", "symbol": "FCX.N", "catalyst": "电解铜 + 铜箔", "tech_option": false},
+      {"code": "AA", "name": "Alcoa Corp", "symbol": "AA.N", "catalyst": "铝箔 + 电子铝材", "tech_option": false},
+      {"code": "LIN", "name": "Linde plc", "symbol": "LIN.N", "catalyst": "电子特种气体", "tech_option": false},
+      {"code": "APD", "name": "Air Products & Chemicals", "symbol": "APD.N", "catalyst": "电子气体", "tech_option": false},
+      {"code": "ATI", "name": "ATI Inc", "symbol": "ATI.N", "catalyst": "特种合金靶材", "tech_option": false}
+    ],
+    "tech_option_stocks": [],
+    "leader_pe_threshold": 20,
+    "leader_cap_threshold": 20000
+  },
+  "liquid-cooling": {
+    "sector_name": "液冷散热",
+    "leaders": [
+      {"code": "VRT", "name": "Vertiv Holdings", "symbol": "VRT.N"},
+      {"code": "SMCI", "name": "Super Micro Computer", "symbol": "SMCI.O"}
+    ],
+    "second_tier": [
+      {"code": "MRCY", "name": "Mercury Systems", "symbol": "MRCY.O", "catalyst": "军工液冷", "tech_option": false},
+      {"code": "MOD", "name": "Modine Manufacturing", "symbol": "MOD.N", "catalyst": "数据中心冷却", "tech_option": false}
+    ],
+    "tech_option_stocks": [
+      {"code": "VRT", "name": "Vertiv Holdings", "symbol": "VRT.N", "tech": "液冷 + 电源 + 管理", "stage": "AI 数据中心放量", "base_pe": 40, "success_pe": 80, "tam_cn": "500亿", "success_prob": 0.55}
+    ],
+    "leader_pe_threshold": 40,
+    "leader_cap_threshold": 15000
+  },
+  "ai-cloud": {
+    "sector_name": "AI 与云计算",
+    "leaders": [
+      {"code": "MSFT", "name": "Microsoft Corp", "symbol": "MSFT.O"},
+      {"code": "AMZN", "name": "Amazon.com Inc", "symbol": "AMZN.O"}
+    ],
+    "second_tier": [
+      {"code": "GOOG", "name": "Alphabet Inc-CL C", "symbol": "GOOG.O", "catalyst": "Gemini + TPU 自研", "tech_option": false},
+      {"code": "CRM", "name": "Salesforce Inc", "symbol": "CRM.N", "catalyst": "Agentforce AI 重塑 SaaS", "tech_option": false},
+      {"code": "NOW", "name": "ServiceNow Inc", "symbol": "NOW.N", "catalyst": "Now Assist 渗透加速", "tech_option": false},
+      {"code": "ORCL", "name": "Oracle Corp", "symbol": "ORCL.N", "catalyst": "OCI 云基础设施高速增长", "tech_option": false},
+      {"code": "ADBE", "name": "Adobe Inc", "symbol": "ADBE.O", "catalyst": "Firefly 生成式 AI", "tech_option": false},
+      {"code": "IBM", "name": "IBM Corp", "symbol": "IBM.N", "catalyst": "watsonx + Red Hat AI", "tech_option": false}
+    ],
+    "tech_option_stocks": [
+      {"code": "PLTR", "name": "Palantir Technologies", "symbol": "PLTR.N", "tech": "AIP 政企 AI 平台", "stage": "商业加速", "base_pe": 200, "success_pe": 400, "tam_cn": "500亿", "success_prob": 0.5},
+      {"code": "SNOW", "name": "Snowflake Inc", "symbol": "SNOW.N", "tech": "数据云 + Cortex AI", "stage": "产品迭代", "base_pe": 0, "success_pe": 100, "tam_cn": "200亿", "success_prob": 0.45}
+    ],
+    "leader_pe_threshold": 40,
+    "leader_cap_threshold": 20000
+  },
+  "consumer-electronics": {
+    "sector_name": "消费电子",
+    "leaders": [
+      {"code": "AAPL", "name": "Apple Inc", "symbol": "AAPL.O"}
+    ],
+    "second_tier": [
+      {"code": "SONY", "name": "Sony Group ADR", "symbol": "SONY.N", "catalyst": "PS6 周期 + 影视内容", "tech_option": false},
+      {"code": "HPQ", "name": "HP Inc", "symbol": "HPQ.N", "catalyst": "AI PC 周期", "tech_option": false},
+      {"code": "DELL", "name": "Dell Technologies", "symbol": "DELL.N", "catalyst": "AI PC + 服务器双轮", "tech_option": false},
+      {"code": "LOGI", "name": "Logitech International", "symbol": "LOGI.O", "catalyst": "外设 AI 端侧", "tech_option": false}
+    ],
+    "tech_option_stocks": [
+      {"code": "SONOS", "name": "Sonos Inc", "symbol": "SONO.O", "tech": "智能家居音频 + 流媒体", "stage": "产品换代", "base_pe": 30, "success_pe": 60, "tam_cn": "30亿", "success_prob": 0.35}
+    ],
+    "leader_pe_threshold": 35,
+    "leader_cap_threshold": 30000
+  }
+}

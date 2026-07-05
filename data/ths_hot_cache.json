@@ -1,0 +1,1409 @@
+{
+  "date": "2026-07-04",
+  "stocks": [
+    {
+      "code": "603580",
+      "name": "艾艾精工",
+      "reason": "摘帽+新能源电池配件+轻型输送带",
+      "zhangfu": 10.004,
+      "huanshou": 5.35,
+      "chengjiaoe": 20423,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002528",
+      "name": "*ST英飞",
+      "reason": "预重整+智慧城市+深圳国资",
+      "zhangfu": 4.918,
+      "huanshou": 1.45,
+      "chengjiaoe": 6638,
+      "ddejingliang": 0
+    },
+    {
+      "code": "600265",
+      "name": "*ST景谷",
+      "reason": "算力租赁+协议转让+林业",
+      "zhangfu": 5.011,
+      "huanshou": 1.23,
+      "chengjiaoe": 3749,
+      "ddejingliang": 0
+    },
+    {
+      "code": "600730",
+      "name": "*ST高科",
+      "reason": "半导体封测+教育+ST板块+国企改革",
+      "zhangfu": 5.009,
+      "huanshou": 3.18,
+      "chengjiaoe": 21761,
+      "ddejingliang": 0.04
+    },
+    {
+      "code": "000821",
+      "name": "ST京机",
+      "reason": "钙钛矿设备+机器人+ST板块+回购",
+      "zhangfu": 4.602,
+      "huanshou": 2.86,
+      "chengjiaoe": 14108,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002872",
+      "name": "ST天圣",
+      "reason": "中成药集采+ST摘帽+医药研发",
+      "zhangfu": 5.01,
+      "huanshou": 1.93,
+      "chengjiaoe": 2035,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002717",
+      "name": "*ST岭南",
+      "reason": "面值退市博弈+ST板块新规+生态文旅+中山国资",
+      "zhangfu": 4.902,
+      "huanshou": 5.01,
+      "chengjiaoe": 8918,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002294",
+      "name": "信立泰",
+      "reason": "创新药+CKM慢病+JK07临床数据",
+      "zhangfu": 9.989,
+      "huanshou": 5.82,
+      "chengjiaoe": 250520,
+      "ddejingliang": 0
+    },
+    {
+      "code": "600990",
+      "name": "四创电子",
+      "reason": "低空经济+雷达+商业航天+PCB",
+      "zhangfu": 10.006,
+      "huanshou": 2.94,
+      "chengjiaoe": 14550,
+      "ddejingliang": 0.67
+    },
+    {
+      "code": "000908",
+      "name": "石药景峰",
+      "reason": "石药入主+创新药+摘帽更名+一季报扭亏",
+      "zhangfu": 10.08,
+      "huanshou": 8.86,
+      "chengjiaoe": 51985,
+      "ddejingliang": 0
+    },
+    {
+      "code": "601100",
+      "name": "恒立液压",
+      "reason": "线性驱动器项目+液压油缸+分红",
+      "zhangfu": 10,
+      "huanshou": 1.51,
+      "chengjiaoe": 237413,
+      "ddejingliang": 0.21
+    },
+    {
+      "code": "603922",
+      "name": "ST金鸿顺",
+      "reason": "控制权变更预期+汽车零部件+一季报增长+ST板块",
+      "zhangfu": 4.977,
+      "huanshou": 2.04,
+      "chengjiaoe": 4771,
+      "ddejingliang": 0.08
+    },
+    {
+      "code": "002377",
+      "name": "国创高新",
+      "reason": "改性沥青+回购完成+扭亏为盈",
+      "zhangfu": 10.039,
+      "huanshou": 7.13,
+      "chengjiaoe": 17114,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002715",
+      "name": "登云股份",
+      "reason": "黄金概念+汽车零部件+气门",
+      "zhangfu": 10.008,
+      "huanshou": 6.6,
+      "chengjiaoe": 12946,
+      "ddejingliang": 0
+    },
+    {
+      "code": "301199",
+      "name": "迈赫股份",
+      "reason": "机器人+智能装备+汽车制造",
+      "zhangfu": 20.023,
+      "huanshou": 5.75,
+      "chengjiaoe": 20734,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002988",
+      "name": "豪美新材",
+      "reason": "定增获批+机器人+液冷散热+汽车轻量化",
+      "zhangfu": 9.987,
+      "huanshou": 2.85,
+      "chengjiaoe": 17285,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002496",
+      "name": "辉丰股份",
+      "reason": "生物农业+氨氢新能源+摘帽",
+      "zhangfu": 9.852,
+      "huanshou": 8.84,
+      "chengjiaoe": 22588,
+      "ddejingliang": 0
+    },
+    {
+      "code": "688311",
+      "name": "盟升电子",
+      "reason": "商业航天+卫星导航+军工信息化+高管增持",
+      "zhangfu": 19.992,
+      "huanshou": 6.11,
+      "chengjiaoe": 30985,
+      "ddejingliang": 1.12
+    },
+    {
+      "code": "605199",
+      "name": "ST葫芦娃",
+      "reason": "创新药+ST摘帽预期+儿科药",
+      "zhangfu": 5.07,
+      "huanshou": 1.06,
+      "chengjiaoe": 2505,
+      "ddejingliang": 0.12
+    },
+    {
+      "code": "002198",
+      "name": "ST嘉应",
+      "reason": "ST摘帽+中成药+创新药",
+      "zhangfu": 5.09,
+      "huanshou": 2.73,
+      "chengjiaoe": 4807,
+      "ddejingliang": 0
+    },
+    {
+      "code": "003011",
+      "name": "海象新材",
+      "reason": "PVC地板出口+员工持股+年报增长",
+      "zhangfu": 10,
+      "huanshou": 9.26,
+      "chengjiaoe": 14310,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002767",
+      "name": "先锋电子",
+      "reason": "机器人概念+芯片概念+智慧燃气",
+      "zhangfu": 10,
+      "huanshou": 3.8,
+      "chengjiaoe": 8646,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002082",
+      "name": "ST万邦",
+      "reason": "创新药+阿尔茨海默病+ST板块",
+      "zhangfu": 4.982,
+      "huanshou": 2.57,
+      "chengjiaoe": 16633,
+      "ddejingliang": 0
+    },
+    {
+      "code": "301499",
+      "name": "维科精密",
+      "reason": "可转债发行+半导体封装+汽车电子",
+      "zhangfu": 20,
+      "huanshou": 25.88,
+      "chengjiaoe": 29246,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002501",
+      "name": "*ST利源",
+      "reason": "重大资产重组+汽车铝型材+ST板块",
+      "zhangfu": 5.303,
+      "huanshou": 1.05,
+      "chengjiaoe": 5124,
+      "ddejingliang": 0
+    },
+    {
+      "code": "603012",
+      "name": "创力集团",
+      "reason": "智慧矿山+煤机装备+华为合作+定增获批",
+      "zhangfu": 9.975,
+      "huanshou": 5.19,
+      "chengjiaoe": 28752,
+      "ddejingliang": 0.56
+    },
+    {
+      "code": "002598",
+      "name": "ST章鼓",
+      "reason": "机器人+PCB概念+国企改革",
+      "zhangfu": 4.955,
+      "huanshou": 1.72,
+      "chengjiaoe": 3377,
+      "ddejingliang": 0
+    },
+    {
+      "code": "605028",
+      "name": "世茂能源",
+      "reason": "热电联产+固废处理+高股息",
+      "zhangfu": 9.991,
+      "huanshou": 2.99,
+      "chengjiaoe": 11174,
+      "ddejingliang": 0.56
+    },
+    {
+      "code": "600238",
+      "name": "*ST椰岛",
+      "reason": "ST摘帽+保健酒+一季报扭亏+海南国资",
+      "zhangfu": 5.022,
+      "huanshou": 1.05,
+      "chengjiaoe": 2202,
+      "ddejingliang": 0.19
+    },
+    {
+      "code": "603466",
+      "name": "风语筑",
+      "reason": "债务重组+具身智能+AI体验经济+数字展示",
+      "zhangfu": 10.028,
+      "huanshou": 15.07,
+      "chengjiaoe": 101437,
+      "ddejingliang": 1.49
+    },
+    {
+      "code": "002726",
+      "name": "ST龙大",
+      "reason": "ST板块+下修转股价+猪肉",
+      "zhangfu": 4.688,
+      "huanshou": 6.79,
+      "chengjiaoe": 10289,
+      "ddejingliang": 0
+    },
+    {
+      "code": "605189",
+      "name": "富春染织",
+      "reason": "人形机器人+PEEK材料+业绩增长+筒子纱龙头",
+      "zhangfu": 10.007,
+      "huanshou": 10.15,
+      "chengjiaoe": 35590,
+      "ddejingliang": 1.11
+    },
+    {
+      "code": "600592",
+      "name": "龙溪股份",
+      "reason": "关节轴承+人形机器人+漳州国资",
+      "zhangfu": 10.034,
+      "huanshou": 5.64,
+      "chengjiaoe": 35270,
+      "ddejingliang": 1.53
+    },
+    {
+      "code": "603013",
+      "name": "亚普股份",
+      "reason": "混动燃油系统+旋转变压器+一季报增长+央企",
+      "zhangfu": 10.031,
+      "huanshou": 1.05,
+      "chengjiaoe": 9082,
+      "ddejingliang": 0.14
+    },
+    {
+      "code": "300718",
+      "name": "长盛轴承",
+      "reason": "机器人+自润滑轴承+具身智能",
+      "zhangfu": 19.997,
+      "huanshou": 14.84,
+      "chengjiaoe": 214213,
+      "ddejingliang": 0
+    },
+    {
+      "code": "603278",
+      "name": "大业股份",
+      "reason": "人形机器人+腱绳+胎圈钢丝+商业航天",
+      "zhangfu": 9.991,
+      "huanshou": 8.62,
+      "chengjiaoe": 34234,
+      "ddejingliang": 1.49
+    },
+    {
+      "code": "601689",
+      "name": "拓普集团",
+      "reason": "人形机器人+特斯拉产业链+汽车零部件",
+      "zhangfu": 10.009,
+      "huanshou": 4.97,
+      "chengjiaoe": 522350,
+      "ddejingliang": 0.87
+    },
+    {
+      "code": "301596",
+      "name": "瑞迪智驱",
+      "reason": "人形机器人+谐波减速机+电磁制动器",
+      "zhangfu": 19.996,
+      "huanshou": 18.34,
+      "chengjiaoe": 48854,
+      "ddejingliang": 0
+    },
+    {
+      "code": "603915",
+      "name": "国茂股份",
+      "reason": "机器人+精密减速器+Q1业绩增长",
+      "zhangfu": 10.021,
+      "huanshou": 2.34,
+      "chengjiaoe": 23650,
+      "ddejingliang": 0.31
+    },
+    {
+      "code": "600243",
+      "name": "*ST海华",
+      "reason": "摘帽预期+天然气+减速器",
+      "zhangfu": 4.899,
+      "huanshou": 1.79,
+      "chengjiaoe": 2798,
+      "ddejingliang": 0.06
+    },
+    {
+      "code": "300580",
+      "name": "贝斯特",
+      "reason": "人形机器人+工业母机",
+      "zhangfu": 20.019,
+      "huanshou": 9.28,
+      "chengjiaoe": 107871,
+      "ddejingliang": 0
+    },
+    {
+      "code": "003021",
+      "name": "兆威机电",
+      "reason": "人形机器人+灵巧手+精密驱动+H股回购",
+      "zhangfu": 9.996,
+      "huanshou": 4.63,
+      "chengjiaoe": 93803,
+      "ddejingliang": 0
+    },
+    {
+      "code": "603726",
+      "name": "朗迪集团",
+      "reason": "间接投资长鑫科技、甬矽电子+机器人关节+空调风叶",
+      "zhangfu": 9.991,
+      "huanshou": 6.86,
+      "chengjiaoe": 43010,
+      "ddejingliang": 0.97
+    },
+    {
+      "code": "600841",
+      "name": "动力新科",
+      "reason": "数据中心+一季报扭亏+上海国资",
+      "zhangfu": 10,
+      "huanshou": 2.2,
+      "chengjiaoe": 14831,
+      "ddejingliang": 0.51
+    },
+    {
+      "code": "002283",
+      "name": "天润工业",
+      "reason": "机器人+大缸径曲轴+重卡曲轴龙头",
+      "zhangfu": 9.989,
+      "huanshou": 3.57,
+      "chengjiaoe": 35469,
+      "ddejingliang": 0
+    },
+    {
+      "code": "605255",
+      "name": "天普股份",
+      "reason": "中昊芯英入主+澄清借壳+汽车管路",
+      "zhangfu": 9.997,
+      "huanshou": 1.39,
+      "chengjiaoe": 13494,
+      "ddejingliang": 0.1
+    },
+    {
+      "code": "300985",
+      "name": "致远新能",
+      "reason": "算力+车载LNG供气系统+氢能",
+      "zhangfu": 20.005,
+      "huanshou": 4.31,
+      "chengjiaoe": 36956,
+      "ddejingliang": 0
+    },
+    {
+      "code": "003028",
+      "name": "振邦智能",
+      "reason": "机器人+智能控制器+小米汽车",
+      "zhangfu": 10.013,
+      "huanshou": 4.82,
+      "chengjiaoe": 8164,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002109",
+      "name": "ST兴化",
+      "reason": "子公司复产+股东增持+煤化工+陕西国资",
+      "zhangfu": 4.887,
+      "huanshou": 1.2,
+      "chengjiaoe": 4225,
+      "ddejingliang": 0
+    },
+    {
+      "code": "600143",
+      "name": "金发科技",
+      "reason": "间接持股宇树科技+改性塑料+机器人材料",
+      "zhangfu": 10.026,
+      "huanshou": 4.6,
+      "chengjiaoe": 200842,
+      "ddejingliang": 0.94
+    },
+    {
+      "code": "002193",
+      "name": "ST如意",
+      "reason": "ST摘帽预期+精纺呢绒+外销",
+      "zhangfu": 5.034,
+      "huanshou": 1.67,
+      "chengjiaoe": 1980,
+      "ddejingliang": 0
+    },
+    {
+      "code": "603338",
+      "name": "浙江鼎力",
+      "reason": "机器人+电动化+世界杯概念",
+      "zhangfu": 10.006,
+      "huanshou": 3.87,
+      "chengjiaoe": 98758,
+      "ddejingliang": 0.33
+    },
+    {
+      "code": "603378",
+      "name": "*ST亚士",
+      "reason": "ST板块+建筑涂料+超跌反弹",
+      "zhangfu": 5.049,
+      "huanshou": 1.92,
+      "chengjiaoe": 4363,
+      "ddejingliang": 0.53
+    },
+    {
+      "code": "600769",
+      "name": "祥龙电业",
+      "reason": "存算基地+供水+武汉国资",
+      "zhangfu": 10,
+      "huanshou": 7.85,
+      "chengjiaoe": 60686,
+      "ddejingliang": 0.58
+    },
+    {
+      "code": "002168",
+      "name": "ST惠程",
+      "reason": "生物医药+预重整+ST板块+奥利司他胶囊",
+      "zhangfu": 4.945,
+      "huanshou": 1.46,
+      "chengjiaoe": 4338,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002664",
+      "name": "信质集团",
+      "reason": "人形机器人+低空经济+新能源驱动电机",
+      "zhangfu": 10.017,
+      "huanshou": 3.05,
+      "chengjiaoe": 23593,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002650",
+      "name": "ST加加",
+      "reason": "资产收回+调味品+一季度扭亏+ST摘帽预期",
+      "zhangfu": 4.959,
+      "huanshou": 0.8,
+      "chengjiaoe": 5598,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002623",
+      "name": "亚玛顿",
+      "reason": "玻璃基板+特斯拉概念+光伏玻璃+钙钛矿组件",
+      "zhangfu": 10.006,
+      "huanshou": 4.83,
+      "chengjiaoe": 15180,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002199",
+      "name": "*ST东晶",
+      "reason": "ST摘帽+石英晶体元器件+碳酸锂",
+      "zhangfu": 4.967,
+      "huanshou": 1.28,
+      "chengjiaoe": 3770,
+      "ddejingliang": 0
+    },
+    {
+      "code": "600734",
+      "name": "*ST实达",
+      "reason": "算力合同+智算中心+福建国资+一季报减亏",
+      "zhangfu": 4.819,
+      "huanshou": 3.01,
+      "chengjiaoe": 11120,
+      "ddejingliang": 0.45
+    },
+    {
+      "code": "002485",
+      "name": "ST雪发",
+      "reason": "实控人变更预期+文旅演艺+ST摘帽",
+      "zhangfu": 5.027,
+      "huanshou": 1,
+      "chengjiaoe": 3136,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002141",
+      "name": "贤丰控股",
+      "reason": "覆铜板+PCB概念+盐湖提锂参股",
+      "zhangfu": 10.064,
+      "huanshou": 17.78,
+      "chengjiaoe": 90517,
+      "ddejingliang": 0
+    },
+    {
+      "code": "001268",
+      "name": "联合精密",
+      "reason": "成飞概念+航空精密零部件+拟定增",
+      "zhangfu": 9.994,
+      "huanshou": 3.95,
+      "chengjiaoe": 10065,
+      "ddejingliang": 0
+    },
+    {
+      "code": "000016",
+      "name": "*ST康佳A",
+      "reason": "追偿1.67亿+华润保壳预期+PCB存储芯片+央企",
+      "zhangfu": 5.118,
+      "huanshou": 2.89,
+      "chengjiaoe": 12150,
+      "ddejingliang": 0
+    },
+    {
+      "code": "001400",
+      "name": "江顺科技",
+      "reason": "3D打印+商业航天+液冷服务器+铝挤压模具",
+      "zhangfu": 9.997,
+      "huanshou": 11.36,
+      "chengjiaoe": 63895,
+      "ddejingliang": 0
+    },
+    {
+      "code": "603051",
+      "name": "鹿山新材",
+      "reason": "电子皮肤+人形机器人+太空光伏+股权激励",
+      "zhangfu": 9.99,
+      "huanshou": 5.81,
+      "chengjiaoe": 19986,
+      "ddejingliang": 1.17
+    },
+    {
+      "code": "605305",
+      "name": "中际联合",
+      "reason": "风电+储能消防+一季报增长+股东户数减少",
+      "zhangfu": 10,
+      "huanshou": 4.75,
+      "chengjiaoe": 45370,
+      "ddejingliang": 1.02
+    },
+    {
+      "code": "002305",
+      "name": "*ST南置",
+      "reason": "摘帽预期+扭亏为盈+城市运营+央企",
+      "zhangfu": 5.236,
+      "huanshou": 2.43,
+      "chengjiaoe": 8309,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002005",
+      "name": "ST德豪",
+      "reason": "一季报扭亏+LED封装+ST摘帽+小家电",
+      "zhangfu": 4.938,
+      "huanshou": 1.57,
+      "chengjiaoe": 6957,
+      "ddejingliang": 0
+    },
+    {
+      "code": "300129",
+      "name": "泰胜风能",
+      "reason": "商业航天+风电装备+广州国资",
+      "zhangfu": 19.977,
+      "huanshou": 11.47,
+      "chengjiaoe": 82305,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002090",
+      "name": "金智科技",
+      "reason": "电气自动化+智慧能源",
+      "zhangfu": 9.977,
+      "huanshou": 3.12,
+      "chengjiaoe": 11521,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002353",
+      "name": "杰瑞股份",
+      "reason": "燃气轮机+北美数据中心+油气装备",
+      "zhangfu": 10.001,
+      "huanshou": 2.36,
+      "chengjiaoe": 256655,
+      "ddejingliang": 0
+    },
+    {
+      "code": "600759",
+      "name": "ST洲际",
+      "reason": "ST板块+油气开采+控制权变更预期",
+      "zhangfu": 4.951,
+      "huanshou": 7.64,
+      "chengjiaoe": 65916,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002771",
+      "name": "真视通",
+      "reason": "液冷算力+高压快充+多媒体视讯",
+      "zhangfu": 9.992,
+      "huanshou": 11.02,
+      "chengjiaoe": 26032,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002822",
+      "name": "ST中装",
+      "reason": "申请撤销ST+物业管理+固废资源化",
+      "zhangfu": 4.893,
+      "huanshou": 3.06,
+      "chengjiaoe": 10957,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002472",
+      "name": "双环传动",
+      "reason": "机器人+减速器+新能源齿轮",
+      "zhangfu": 9.991,
+      "huanshou": 9.97,
+      "chengjiaoe": 341214,
+      "ddejingliang": 0
+    },
+    {
+      "code": "603596",
+      "name": "伯特利",
+      "reason": "人形机器人+EMB量产+智能底盘",
+      "zhangfu": 9.984,
+      "huanshou": 2.56,
+      "chengjiaoe": 61677,
+      "ddejingliang": 0.44
+    },
+    {
+      "code": "600165",
+      "name": "ST宁科",
+      "reason": "长链二元酸+ST板块+合成生物",
+      "zhangfu": 5.091,
+      "huanshou": 1.78,
+      "chengjiaoe": 3729,
+      "ddejingliang": 0.03
+    },
+    {
+      "code": "002270",
+      "name": "华明装备",
+      "reason": "特高压+变压器+机器人概念",
+      "zhangfu": 9.995,
+      "huanshou": 2.34,
+      "chengjiaoe": 40892,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002850",
+      "name": "科达利",
+      "reason": "人形机器人+锂电池结构件+特斯拉",
+      "zhangfu": 10,
+      "huanshou": 4.27,
+      "chengjiaoe": 195351,
+      "ddejingliang": 0
+    },
+    {
+      "code": "603286",
+      "name": "日盈电子",
+      "reason": "人形机器人+电子皮肤+北美工厂+传感器",
+      "zhangfu": 10.004,
+      "huanshou": 6.17,
+      "chengjiaoe": 39575,
+      "ddejingliang": 1
+    },
+    {
+      "code": "300779",
+      "name": "惠城环保",
+      "reason": "废塑料化学循环+固废处理+增资扩股",
+      "zhangfu": 20.004,
+      "huanshou": 5.7,
+      "chengjiaoe": 72419,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002981",
+      "name": "朝阳科技",
+      "reason": "机器人概念+电声产品+AI眼镜",
+      "zhangfu": 9.99,
+      "huanshou": 4.23,
+      "chengjiaoe": 10534,
+      "ddejingliang": 0
+    },
+    {
+      "code": "001306",
+      "name": "夏厦精密",
+      "reason": "人形机器人+行星滚柱丝杠+精密减速机",
+      "zhangfu": 9.993,
+      "huanshou": 9.76,
+      "chengjiaoe": 9372,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002896",
+      "name": "中大力德",
+      "reason": "人形机器人+精密减速器+海外布局",
+      "zhangfu": 9.995,
+      "huanshou": 10.3,
+      "chengjiaoe": 170146,
+      "ddejingliang": 0
+    },
+    {
+      "code": "603730",
+      "name": "岱美股份",
+      "reason": "人形机器人+特斯拉+遮阳板龙头+北美扩产",
+      "zhangfu": 9.983,
+      "huanshou": 2.82,
+      "chengjiaoe": 77432,
+      "ddejingliang": 0.21
+    },
+    {
+      "code": "603165",
+      "name": "荣晟环保",
+      "reason": "间接投资宇树科技+造纸+光电子芯片",
+      "zhangfu": 10.03,
+      "huanshou": 3.31,
+      "chengjiaoe": 14945,
+      "ddejingliang": 0.74
+    },
+    {
+      "code": "002536",
+      "name": "飞龙股份",
+      "reason": "液冷服务器+机器人+汽车热管理",
+      "zhangfu": 9.992,
+      "huanshou": 9.28,
+      "chengjiaoe": 257710,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002434",
+      "name": "万里扬",
+      "reason": "人形机器人+谐波减速器+汽车零部件",
+      "zhangfu": 10.066,
+      "huanshou": 2.17,
+      "chengjiaoe": 18399,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002122",
+      "name": "ST汇洲",
+      "reason": "人形机器人+ST摘帽+数据服务",
+      "zhangfu": 4.938,
+      "huanshou": 1.34,
+      "chengjiaoe": 6651,
+      "ddejingliang": 0
+    },
+    {
+      "code": "600580",
+      "name": "卧龙电驱",
+      "reason": "间接持股宇树+人形机器人+低空经济",
+      "zhangfu": 10.015,
+      "huanshou": 5.13,
+      "chengjiaoe": 292038,
+      "ddejingliang": 1.45
+    },
+    {
+      "code": "002747",
+      "name": "埃斯顿",
+      "reason": "拟收购酷卓+具身智能+工业机器人",
+      "zhangfu": 10,
+      "huanshou": 16.2,
+      "chengjiaoe": 550806,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002700",
+      "name": "万憬能源",
+      "reason": "天然气+燃气特许经营+国产气源",
+      "zhangfu": 10.049,
+      "huanshou": 2.97,
+      "chengjiaoe": 7835,
+      "ddejingliang": 0
+    },
+    {
+      "code": "600530",
+      "name": "交大昂立",
+      "reason": "保健品+宠物经济+增持",
+      "zhangfu": 10.039,
+      "huanshou": 1.51,
+      "chengjiaoe": 6490,
+      "ddejingliang": 0.43
+    },
+    {
+      "code": "002072",
+      "name": "凯瑞德",
+      "reason": "煤炭贸易+控制权变更预期+资产注入预期",
+      "zhangfu": 10.046,
+      "huanshou": 10.61,
+      "chengjiaoe": 37050,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002765",
+      "name": "蓝黛科技",
+      "reason": "减速器+汽车零部件+国企",
+      "zhangfu": 10.014,
+      "huanshou": 3.35,
+      "chengjiaoe": 15502,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002635",
+      "name": "安洁科技",
+      "reason": "收购苏州志烽51%股权+光模块+消费电子",
+      "zhangfu": 9.981,
+      "huanshou": 12.52,
+      "chengjiaoe": 110881,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002249",
+      "name": "大洋电机",
+      "reason": "具身智能+机器人电机+新能源汽车电机+电机龙头",
+      "zhangfu": 10.04,
+      "huanshou": 3.7,
+      "chengjiaoe": 56186,
+      "ddejingliang": 0
+    },
+    {
+      "code": "600801",
+      "name": "华新建材",
+      "reason": "水泥+海外扩张+雅下水电+一季报增长",
+      "zhangfu": 10.024,
+      "huanshou": 1.31,
+      "chengjiaoe": 31181,
+      "ddejingliang": 0.46
+    },
+    {
+      "code": "603178",
+      "name": "圣龙股份",
+      "reason": "机器人关节驱动+飞行汽车+泵类龙头",
+      "zhangfu": 10.035,
+      "huanshou": 2.47,
+      "chengjiaoe": 8914,
+      "ddejingliang": 0.83
+    },
+    {
+      "code": "000838",
+      "name": "*ST发展",
+      "reason": "重整+房地产",
+      "zhangfu": 4.734,
+      "huanshou": 1.9,
+      "chengjiaoe": 3502,
+      "ddejingliang": 0
+    },
+    {
+      "code": "300912",
+      "name": "凯龙高科",
+      "reason": "人形机器人+获一汽解放定点+拟收购金旺达",
+      "zhangfu": 20,
+      "huanshou": 10.04,
+      "chengjiaoe": 23583,
+      "ddejingliang": 0
+    },
+    {
+      "code": "601177",
+      "name": "杭齿前进",
+      "reason": "人形机器人+齿轮箱龙头+杭州国资",
+      "zhangfu": 9.992,
+      "huanshou": 2.87,
+      "chengjiaoe": 16185,
+      "ddejingliang": 1.01
+    },
+    {
+      "code": "000576",
+      "name": "甘化科工",
+      "reason": "参股锴威特半导体+光电成像+非晶合金+军工",
+      "zhangfu": 10,
+      "huanshou": 5.63,
+      "chengjiaoe": 19331,
+      "ddejingliang": 0
+    },
+    {
+      "code": "603798",
+      "name": "康普顿",
+      "reason": "润滑油+氢能催化剂+军工认证",
+      "zhangfu": 9.971,
+      "huanshou": 1.45,
+      "chengjiaoe": 5528,
+      "ddejingliang": 0.3
+    },
+    {
+      "code": "603303",
+      "name": "得邦照明",
+      "reason": "车载照明+汽车电子+收购嘉利股份",
+      "zhangfu": 9.996,
+      "huanshou": 3.11,
+      "chengjiaoe": 35951,
+      "ddejingliang": 0.5
+    },
+    {
+      "code": "000711",
+      "name": "ST京蓝",
+      "reason": "ITO靶材投产+铟资源循环+ST板块",
+      "zhangfu": 4.99,
+      "huanshou": 4.83,
+      "chengjiaoe": 60255,
+      "ddejingliang": 0
+    },
+    {
+      "code": "600391",
+      "name": "航发科技",
+      "reason": "长江系列发动机+燃气轮机+外贸订单+央企",
+      "zhangfu": 10.003,
+      "huanshou": 3.33,
+      "chengjiaoe": 38473,
+      "ddejingliang": 0.89
+    },
+    {
+      "code": "301379",
+      "name": "天山电子",
+      "reason": "光学光电子+存储芯片+企业级SSD",
+      "zhangfu": 20,
+      "huanshou": 22.75,
+      "chengjiaoe": 155951,
+      "ddejingliang": 0
+    },
+    {
+      "code": "603713",
+      "name": "密尔克卫",
+      "reason": "股权激励+半导体物流+化工供应链",
+      "zhangfu": 9.996,
+      "huanshou": 2.29,
+      "chengjiaoe": 28233,
+      "ddejingliang": 0.5
+    },
+    {
+      "code": "600624",
+      "name": "ST复华",
+      "reason": "摘帽预期+医药+上海国资",
+      "zhangfu": 5.014,
+      "huanshou": 0.53,
+      "chengjiaoe": 1339,
+      "ddejingliang": 0.16
+    },
+    {
+      "code": "002868",
+      "name": "绿康生化",
+      "reason": "动物保健+剥离光伏+扭亏为盈",
+      "zhangfu": 10.004,
+      "huanshou": 1.58,
+      "chengjiaoe": 4333,
+      "ddejingliang": 0
+    },
+    {
+      "code": "603717",
+      "name": "天域生物",
+      "reason": "生猪养殖+拟设AI公司+功能性红曲+光伏",
+      "zhangfu": 10.06,
+      "huanshou": 18,
+      "chengjiaoe": 37616,
+      "ddejingliang": 1.4
+    },
+    {
+      "code": "603211",
+      "name": "晋拓股份",
+      "reason": "与宇树科技合资+人形机器人+机器人零部件",
+      "zhangfu": 10.009,
+      "huanshou": 2.82,
+      "chengjiaoe": 27122,
+      "ddejingliang": 1.03
+    },
+    {
+      "code": "603559",
+      "name": "中通国脉",
+      "reason": "摘帽+扭亏为盈+通信技术服务",
+      "zhangfu": 9.989,
+      "huanshou": 3.61,
+      "chengjiaoe": 14138,
+      "ddejingliang": 0
+    },
+    {
+      "code": "601069",
+      "name": "西部黄金",
+      "reason": "黄金+新疆国资+一季报增长",
+      "zhangfu": 10.021,
+      "huanshou": 2.18,
+      "chengjiaoe": 49349,
+      "ddejingliang": 0.79
+    },
+    {
+      "code": "002520",
+      "name": "日发精机",
+      "reason": "人形机器人+数控螺纹磨床+高端数控机床",
+      "zhangfu": 9.972,
+      "huanshou": 9.35,
+      "chengjiaoe": 51092,
+      "ddejingliang": 0
+    },
+    {
+      "code": "605068",
+      "name": "明新旭腾",
+      "reason": "人形机器人+电子皮肤+汽车内饰",
+      "zhangfu": 10.017,
+      "huanshou": 1.09,
+      "chengjiaoe": 3305,
+      "ddejingliang": 0.24
+    },
+    {
+      "code": "600082",
+      "name": "ST海泰",
+      "reason": "ST板块+园区运营+天津国资",
+      "zhangfu": 4.982,
+      "huanshou": 1.29,
+      "chengjiaoe": 2406,
+      "ddejingliang": 0.29
+    },
+    {
+      "code": "002217",
+      "name": "ST合力泰",
+      "reason": "控股股东增持+电子纸+福建国资",
+      "zhangfu": 4.762,
+      "huanshou": 5.49,
+      "chengjiaoe": 66969,
+      "ddejingliang": 0
+    },
+    {
+      "code": "001337",
+      "name": "四川黄金",
+      "reason": "黄金+金精矿+国企改革",
+      "zhangfu": 10.011,
+      "huanshou": 2.34,
+      "chengjiaoe": 39904,
+      "ddejingliang": 0
+    },
+    {
+      "code": "001317",
+      "name": "三羊马",
+      "reason": "物流+跨境电商+小米汽车",
+      "zhangfu": 9.993,
+      "huanshou": 4.84,
+      "chengjiaoe": 19691,
+      "ddejingliang": 0
+    },
+    {
+      "code": "001270",
+      "name": "铖昌科技",
+      "reason": "商业航天+相控阵T/R芯片+摘帽",
+      "zhangfu": 10.002,
+      "huanshou": 2.27,
+      "chengjiaoe": 74464,
+      "ddejingliang": 0
+    },
+    {
+      "code": "601010",
+      "name": "ST文峰",
+      "reason": "ST板块+回购注销+航天科技+零售",
+      "zhangfu": 5.229,
+      "huanshou": 1.92,
+      "chengjiaoe": 5697,
+      "ddejingliang": 0.31
+    },
+    {
+      "code": "002471",
+      "name": "中超控股",
+      "reason": "商业航天+高温合金+定增获批",
+      "zhangfu": 9.966,
+      "huanshou": 6.98,
+      "chengjiaoe": 60637,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002067",
+      "name": "景兴纸业",
+      "reason": "间接持股宇树科技+机器人概念+造纸",
+      "zhangfu": 9.948,
+      "huanshou": 4.01,
+      "chengjiaoe": 22245,
+      "ddejingliang": 0
+    },
+    {
+      "code": "000975",
+      "name": "山金国际",
+      "reason": "黄金+业绩预增+山东国资",
+      "zhangfu": 9.978,
+      "huanshou": 2.65,
+      "chengjiaoe": 132204,
+      "ddejingliang": 0
+    },
+    {
+      "code": "603822",
+      "name": "ST嘉澳",
+      "reason": "生物航煤+环保增塑剂+ST板块",
+      "zhangfu": 5,
+      "huanshou": 0.25,
+      "chengjiaoe": 1435,
+      "ddejingliang": 0.09
+    },
+    {
+      "code": "603377",
+      "name": "ST东时",
+      "reason": "ST板块+预重整+实控人变更+智能驾培",
+      "zhangfu": 4.965,
+      "huanshou": 0.51,
+      "chengjiaoe": 1066,
+      "ddejingliang": 0.09
+    },
+    {
+      "code": "600988",
+      "name": "赤峰黄金",
+      "reason": "黄金+紫金矿业入主",
+      "zhangfu": 10.004,
+      "huanshou": 2.24,
+      "chengjiaoe": 115237,
+      "ddejingliang": 0.56
+    },
+    {
+      "code": "600084",
+      "name": "*ST尼雅",
+      "reason": "葡萄酒+一季报增长+董事长变更+央企",
+      "zhangfu": 4.951,
+      "huanshou": 0.12,
+      "chengjiaoe": 557,
+      "ddejingliang": 0.03
+    },
+    {
+      "code": "002677",
+      "name": "浙江美大",
+      "reason": "AI厨电+集成灶龙头+智能驾驶",
+      "zhangfu": 10.071,
+      "huanshou": 0.97,
+      "chengjiaoe": 3264,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002292",
+      "name": "奥飞娱乐",
+      "reason": "半年报预增+IP经济+股份回购",
+      "zhangfu": 9.957,
+      "huanshou": 5.77,
+      "chengjiaoe": 45343,
+      "ddejingliang": 0
+    },
+    {
+      "code": "603327",
+      "name": "福蓉科技",
+      "reason": "2026中报预增+折叠屏+苹果概念+福建国资",
+      "zhangfu": 10.062,
+      "huanshou": 1.62,
+      "chengjiaoe": 14923,
+      "ddejingliang": 1.03
+    },
+    {
+      "code": "002360",
+      "name": "ST同德",
+      "reason": "债务重整+民爆一体化+执行终结",
+      "zhangfu": 5.01,
+      "huanshou": 1.22,
+      "chengjiaoe": 2166,
+      "ddejingliang": 0
+    },
+    {
+      "code": "000909",
+      "name": "*ST数源",
+      "reason": "资产整合+杭州国资+大功率充电桩",
+      "zhangfu": 5.06,
+      "huanshou": 0.62,
+      "chengjiaoe": 1168,
+      "ddejingliang": 0
+    },
+    {
+      "code": "000639",
+      "name": "ST西王",
+      "reason": "高管增持+玉米油龙头+控制权变更预期",
+      "zhangfu": 4.918,
+      "huanshou": 7.12,
+      "chengjiaoe": 9743,
+      "ddejingliang": 0
+    },
+    {
+      "code": "000506",
+      "name": "招金黄金",
+      "reason": "黄金+一季报扭亏+国企",
+      "zhangfu": 9.992,
+      "huanshou": 2.92,
+      "chengjiaoe": 37184,
+      "ddejingliang": 0
+    },
+    {
+      "code": "600793",
+      "name": "宜宾纸业",
+      "reason": "子公司购买资产+醋酸纤维素+竹基新材料+宜宾国资",
+      "zhangfu": 10.034,
+      "huanshou": 2.07,
+      "chengjiaoe": 5854,
+      "ddejingliang": 0.95
+    },
+    {
+      "code": "603557",
+      "name": "*ST起步",
+      "reason": "铝业转型+ST板块+儿童消费品",
+      "zhangfu": 5,
+      "huanshou": 1.15,
+      "chengjiaoe": 3164,
+      "ddejingliang": 0
+    },
+    {
+      "code": "603137",
+      "name": "恒尚节能",
+      "reason": "拟收购存储公司+复牌+建筑幕墙",
+      "zhangfu": 10.032,
+      "huanshou": 0.33,
+      "chengjiaoe": 1042,
+      "ddejingliang": 0.22
+    },
+    {
+      "code": "600376",
+      "name": "首开股份",
+      "reason": "间接持股宇树科技+北京国资+城市更新",
+      "zhangfu": 10.116,
+      "huanshou": 1.44,
+      "chengjiaoe": 14121,
+      "ddejingliang": 0.82
+    },
+    {
+      "code": "002979",
+      "name": "雷赛智能",
+      "reason": "2026中报预增+人形机器人+灵巧手",
+      "zhangfu": 9.995,
+      "huanshou": 2.48,
+      "chengjiaoe": 38395,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002396",
+      "name": "星网锐捷",
+      "reason": "数据中心交换机+业绩预增+福建国资",
+      "zhangfu": 10.014,
+      "huanshou": 1.04,
+      "chengjiaoe": 18388,
+      "ddejingliang": 0
+    },
+    {
+      "code": "000656",
+      "name": "金科股份",
+      "reason": "摘帽+地产开发+不动产综合运营",
+      "zhangfu": 10.17,
+      "huanshou": 0.07,
+      "chengjiaoe": 674,
+      "ddejingliang": 0
+    },
+    {
+      "code": "603828",
+      "name": "*ST利达",
+      "reason": "ST板块+控制权变更+光伏建筑一体化",
+      "zhangfu": 4.977,
+      "huanshou": 0.07,
+      "chengjiaoe": 181,
+      "ddejingliang": 0.02
+    },
+    {
+      "code": "603789",
+      "name": "ST星农",
+      "reason": "控制权变更+光伏储能+农业机械",
+      "zhangfu": 4.959,
+      "huanshou": 0.25,
+      "chengjiaoe": 412,
+      "ddejingliang": 0.07
+    },
+    {
+      "code": "601718",
+      "name": "ST际华",
+      "reason": "回购+ST板块+军需品+央企",
+      "zhangfu": 5.031,
+      "huanshou": 0.07,
+      "chengjiaoe": 517,
+      "ddejingliang": 0.05
+    },
+    {
+      "code": "002667",
+      "name": "*ST威领",
+      "reason": "ST板块+碳酸锂+钨锡铅锌矿",
+      "zhangfu": 4.983,
+      "huanshou": 0.31,
+      "chengjiaoe": 912,
+      "ddejingliang": 0
+    },
+    {
+      "code": "600187",
+      "name": "*ST国中",
+      "reason": "增持+污水处理+股份回购",
+      "zhangfu": 5,
+      "huanshou": 0.29,
+      "chengjiaoe": 698,
+      "ddejingliang": 0.22
+    },
+    {
+      "code": "002542",
+      "name": "*ST中岩",
+      "reason": "保壳+低空经济+成都国资",
+      "zhangfu": 4.8,
+      "huanshou": 3.83,
+      "chengjiaoe": 8734,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002977",
+      "name": "*ST天箭",
+      "reason": "股权转让+对外投资+军工电子+商业航天",
+      "zhangfu": 5.004,
+      "huanshou": 0.7,
+      "chengjiaoe": 1142,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002175",
+      "name": "*ST东智",
+      "reason": "控制权变更+碳基新材料+精密数显量具",
+      "zhangfu": 4.819,
+      "huanshou": 0.15,
+      "chengjiaoe": 488,
+      "ddejingliang": 0
+    },
+    {
+      "code": "002148",
+      "name": "北纬科技",
+      "reason": "中报扭亏+物联网+手机游戏",
+      "zhangfu": 10.067,
+      "huanshou": 1.55,
+      "chengjiaoe": 4571,
+      "ddejingliang": 0
+    },
+    {
+      "code": "000595",
+      "name": "宝塔实业",
+      "reason": "脱星摘帽+新能源发电+宁夏国资+股东增持",
+      "zhangfu": 10.053,
+      "huanshou": 1.34,
+      "chengjiaoe": 9491,
+      "ddejingliang": 0
+    },
+    {
+      "code": "000078",
+      "name": "ST海王",
+      "reason": "摘帽预期+miRNA肿瘤早筛+医药全产业链",
+      "zhangfu": 4.93,
+      "huanshou": 2.39,
+      "chengjiaoe": 9311,
+      "ddejingliang": 0
+    }
+  ]
+}

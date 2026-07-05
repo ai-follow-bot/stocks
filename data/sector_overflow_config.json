@@ -1,0 +1,397 @@
+{
+  "optical-module": {
+    "sector_name": "光模块",
+    "leaders": [
+      {
+        "code": "300308",
+        "name": "中际旭创",
+        "symbol": "300308.SZ"
+      },
+      {
+        "code": "300502",
+        "name": "新易盛",
+        "symbol": "300502.SZ"
+      }
+    ],
+    "second_tier": [
+      {
+        "code": "603083",
+        "name": "剑桥科技",
+        "symbol": "603083.SH",
+        "catalyst": "1.6T光模块错位竞争",
+        "tech_option": true,
+        "tech": "1.6T光模块",
+        "stage": "样品送样"
+      },
+      {
+        "code": "688205",
+        "name": "德科立",
+        "symbol": "688205.SH",
+        "catalyst": "400G/800G ZR量产",
+        "tech_option": false
+      },
+      {
+        "code": "300570",
+        "name": "太辰光",
+        "symbol": "300570.SZ",
+        "catalyst": "MPO连接器随光模块增量",
+        "tech_option": false
+      },
+      {
+        "code": "002281",
+        "name": "光迅科技",
+        "symbol": "002281.SZ",
+        "catalyst": "光交换设备国产替代",
+        "tech_option": false
+      }
+    ],
+    "tech_option_stocks": [
+      {
+        "code": "688498",
+        "name": "源杰科技",
+        "symbol": "688498.SH",
+        "tech": "50G EML",
+        "stage": "客户送样",
+        "base_pe": 50,
+        "success_pe": 120,
+        "tam_cn": "13亿",
+        "success_prob": 0.5
+      },
+      {
+        "code": "300394",
+        "name": "天孚通信",
+        "symbol": "300394.SZ",
+        "tech": "CPO/硅光引擎",
+        "stage": "量产准备",
+        "base_pe": 45,
+        "success_pe": 80,
+        "tam_cn": "30亿",
+        "success_prob": 0.75
+      }
+    ],
+    "leader_pe_threshold": 50,
+    "leader_cap_threshold": 500
+  },
+  "pcb": {
+    "sector_name": "PCB",
+    "leaders": [
+      {
+        "code": "002463",
+        "name": "沪电股份",
+        "symbol": "002463.SZ"
+      },
+      {
+        "code": "002916",
+        "name": "深南电路",
+        "symbol": "002916.SZ"
+      }
+    ],
+    "second_tier": [
+      {
+        "code": "300476",
+        "name": "胜宏科技",
+        "symbol": "300476.SZ",
+        "catalyst": "高端HDI+特斯拉/英伟达双供应商",
+        "tech_option": false
+      },
+      {
+        "code": "603228",
+        "name": "景旺电子",
+        "symbol": "603228.SH",
+        "catalyst": "全品类PCB+珠海高端产能释放",
+        "tech_option": false
+      },
+      {
+        "code": "002436",
+        "name": "兴森科技",
+        "symbol": "002436.SZ",
+        "catalyst": "IC载杴(FCBGA)国产替代",
+        "tech_option": true,
+        "tech": "FCBGA载杴",
+        "stage": "客户认证"
+      }
+    ],
+    "tech_option_stocks": [
+      {
+        "code": "002436",
+        "name": "兴森科技",
+        "symbol": "002436.SZ",
+        "tech": "FCBGA载杴",
+        "stage": "客户认证",
+        "base_pe": 35,
+        "success_pe": 70,
+        "tam_cn": "15亿",
+        "success_prob": 0.45
+      }
+    ],
+    "leader_pe_threshold": 40,
+    "leader_cap_threshold": 400
+  },
+  "liquid-cooling": {
+    "sector_name": "液冷",
+    "leaders": [
+      {
+        "code": "002837",
+        "name": "英维克",
+        "symbol": "002837.SZ"
+      }
+    ],
+    "second_tier": [
+      {
+        "code": "920808",
+        "name": "曙光数创",
+        "symbol": "920808.BJ",
+        "catalyst": "浸没式液冷技术领先",
+        "tech_option": true,
+        "tech": "浸没式液冷",
+        "stage": "量产攀坡"
+      },
+      {
+        "code": "300499",
+        "name": "高兰股份",
+        "symbol": "300499.SZ",
+        "catalyst": "服务器液冷+储能液冷双驱动",
+        "tech_option": false
+      },
+      {
+        "code": "300990",
+        "name": "同飞股份",
+        "symbol": "300990.SZ",
+        "catalyst": "工业温控向数据中心延伸",
+        "tech_option": false
+      }
+    ],
+    "tech_option_stocks": [
+      {
+        "code": "920808",
+        "name": "曙光数创",
+        "symbol": "920808.BJ",
+        "tech": "浸没式液冷",
+        "stage": "量产攀坡",
+        "base_pe": 40,
+        "success_pe": 80,
+        "tam_cn": "10亿",
+        "success_prob": 0.65
+      }
+    ],
+    "leader_pe_threshold": 45,
+    "leader_cap_threshold": 250
+  },
+  "storage": {
+    "sector_name": "存储",
+    "leaders": [
+      {
+        "code": "301308",
+        "name": "江波龙",
+        "symbol": "301308.SZ"
+      },
+      {
+        "code": "002409",
+        "name": "雅克科技",
+        "symbol": "002409.SZ"
+      }
+    ],
+    "second_tier": [
+      {
+        "code": "688525",
+        "name": "佰维存储",
+        "symbol": "688525.SH",
+        "catalyst": "存储模组+工业级市场",
+        "tech_option": false
+      },
+      {
+        "code": "001309",
+        "name": "德明利",
+        "symbol": "001309.SZ",
+        "catalyst": "存储主控+模组自研",
+        "tech_option": false
+      },
+      {
+        "code": "002156",
+        "name": "通富微电",
+        "symbol": "002156.SZ",
+        "catalyst": "HBM TSV封装",
+        "tech_option": true,
+        "tech": "HBM封装",
+        "stage": "量产攀坡"
+      }
+    ],
+    "tech_option_stocks": [
+      {
+        "code": "002156",
+        "name": "通富微电",
+        "symbol": "002156.SZ",
+        "tech": "HBM TSV封装",
+        "stage": "量产攀坡",
+        "base_pe": 40,
+        "success_pe": 70,
+        "tam_cn": "20亿",
+        "success_prob": 0.6
+      },
+      {
+        "code": "688525",
+        "name": "佰维存储",
+        "symbol": "688525.SH",
+        "tech": "HBM模组/工业级SSD",
+        "stage": "小批量",
+        "base_pe": 50,
+        "success_pe": 90,
+        "tam_cn": "15亿",
+        "success_prob": 0.4
+      }
+    ],
+    "leader_pe_threshold": 45,
+    "leader_cap_threshold": 300
+  },
+  "ocs": {
+    "sector_name": "OCS光路交换机",
+    "leaders": [
+      {
+        "code": "002281",
+        "name": "光迅科技",
+        "symbol": "002281.SZ"
+      }
+    ],
+    "second_tier": [
+      {
+        "code": "300456",
+        "name": "赛微电子",
+        "symbol": "300456.SZ",
+        "catalyst": "8英寸MEMS产线投产",
+        "tech_option": true,
+        "tech": "MEMS芯片代工",
+        "stage": "量产攀坡"
+      },
+      {
+        "code": "688195",
+        "name": "腾景科技",
+        "symbol": "688195.SH",
+        "catalyst": "精密光学元件",
+        "tech_option": false
+      }
+    ],
+    "tech_option_stocks": [
+      {
+        "code": "300456",
+        "name": "赛微电子",
+        "symbol": "300456.SZ",
+        "tech": "MEMS芯片代工",
+        "stage": "量产攀坡",
+        "base_pe": 60,
+        "success_pe": 100,
+        "tam_cn": "8亿",
+        "success_prob": 0.55
+      }
+    ],
+    "leader_pe_threshold": 50,
+    "leader_cap_threshold": 200
+  },
+  "mlcc": {
+    "sector_name": "MLCC",
+    "leaders": [
+      {
+        "code": "300408",
+        "name": "三环集团",
+        "symbol": "300408.SZ"
+      },
+      {
+        "code": "000636",
+        "name": "风华高科",
+        "symbol": "000636.SZ"
+      }
+    ],
+    "second_tier": [
+      {
+        "code": "603678",
+        "name": "火炬电子",
+        "symbol": "603678.SH",
+        "catalyst": "军品MLCC高可靠订单",
+        "tech_option": false
+      },
+      {
+        "code": "603267",
+        "name": "鸿远电子",
+        "symbol": "603267.SH",
+        "catalyst": "军规高容MLCC国产替代",
+        "tech_option": false
+      },
+      {
+        "code": "002859",
+        "name": "洁美科技",
+        "symbol": "002859.SZ",
+        "catalyst": "MLCC离型膜/包装带国产化",
+        "tech_option": false
+      },
+      {
+        "code": "300285",
+        "name": "国瓷材料",
+        "symbol": "300285.SZ",
+        "catalyst": "MLCC介质粉体国产替代",
+        "tech_option": false
+      }
+    ],
+    "tech_option_stocks": [
+      {
+        "code": "301511",
+        "name": "达利凯普",
+        "symbol": "301511.SZ",
+        "tech": "RF MLCC (射频微波)",
+        "stage": "量产放量",
+        "base_pe": 35,
+        "success_pe": 80,
+        "tam_cn": "8亿",
+        "success_prob": 0.4
+      }
+    ]
+  },
+  "玻璃基板": {
+    "leaders": [],
+    "second_tier": [],
+    "tech_option_stocks": []
+  },
+  "TGV": {
+    "leaders": [],
+    "second_tier": [],
+    "tech_option_stocks": []
+  },
+  "CPO": {
+    "leaders": [],
+    "second_tier": [],
+    "tech_option_stocks": []
+  },
+  "光模块": {
+    "leaders": [],
+    "second_tier": [],
+    "tech_option_stocks": []
+  },
+  "HBN": {
+    "leaders": [],
+    "second_tier": [],
+    "tech_option_stocks": []
+  },
+  "HBM": {
+    "leaders": [],
+    "second_tier": [],
+    "tech_option_stocks": []
+  },
+  "功率半导体": {
+    "leaders": [],
+    "second_tier": [],
+    "tech_option_stocks": []
+  },
+  "机器人": {
+    "leaders": [],
+    "second_tier": [],
+    "tech_option_stocks": []
+  },
+  "物理AI": {
+    "leaders": [],
+    "second_tier": [],
+    "tech_option_stocks": []
+  },
+  "薄膜铌酸锂": {
+    "leaders": [],
+    "second_tier": [],
+    "tech_option_stocks": []
+  }
+}
