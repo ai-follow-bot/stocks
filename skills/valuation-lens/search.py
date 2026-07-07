@@ -69,12 +69,24 @@ def _load_ecosystem() -> dict:
         return {}
 
 
+def _load_key_map() -> dict:
+    """加载 data/sector_key_map.json（中文/大写别名 → canonical 英文 key）。"""
+    try:
+        return json.loads((config.ECOSYSTEM_JSON.parent / "sector_key_map.json").read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
 def _canonical_sector_key(sector: str) -> str:
     """归一化到 sector_ecosystem.json 的 canonical 英文 key。
-    优先级：英文 key 精确匹配 → 中文名 name 反查(优先英文 key) → 中文 key 兜底 → to_under 回退。
-    中文名 name 反查优先返回英文 key，避免 eco 里中英文双 key（如 optical_module 与 '光模块'）
-    导致 stock/chain 模式写出不同档案 key。"""
+    优先级：中英对照表(data/sector_key_map.json) → 英文 key 精确匹配 → name 反查(优先英文 key) → 中文 key 兜底 → to_under 回退。
+    对照表用于把已删除的中文 duplicate（如 '光模块'）或别名映射到 canonical 英文 key。"""
     eco = _load_ecosystem()
+    km = _load_key_map()
+    # 0. 对照表映射（仅当映射结果在 ecosystem 时采用）
+    mapped = km.get(sector)
+    if mapped and mapped in eco:
+        return mapped
     # 1. 英文 key 精确匹配（含 to_under 归一化）
     if sector in eco and sector.isascii():
         return sector

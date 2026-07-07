@@ -50,12 +50,12 @@
         "code": "688498",
         "name": "源杰科技",
         "symbol": "688498.SH",
-        "tech": "50G EML",
-        "stage": "客户送样",
+        "tech": "100G EML量产 / 200G EML送样",
+        "stage": "100G量产 / 200G送样",
         "base_pe": 50,
         "success_pe": 120,
         "tam_cn": "13亿",
-        "success_prob": 0.5
+        "success_prob": 0.6
       },
       {
         "code": "300394",
@@ -66,7 +66,7 @@
         "base_pe": 45,
         "success_pe": 80,
         "tam_cn": "30亿",
-        "success_prob": 0.75
+        "success_prob": 0.6
       }
     ],
     "leader_pe_threshold": 50,
@@ -121,7 +121,7 @@
         "base_pe": 35,
         "success_pe": 70,
         "tam_cn": "15亿",
-        "success_prob": 0.45
+        "success_prob": 0.5
       }
     ],
     "leader_pe_threshold": 40,
@@ -226,7 +226,7 @@
         "base_pe": 40,
         "success_pe": 70,
         "tam_cn": "20亿",
-        "success_prob": 0.6
+        "success_prob": 0.7
       },
       {
         "code": "688525",
@@ -237,7 +237,7 @@
         "base_pe": 50,
         "success_pe": 90,
         "tam_cn": "15亿",
-        "success_prob": 0.4
+        "success_prob": 0.45
       }
     ],
     "leader_pe_threshold": 45,
@@ -280,7 +280,7 @@
         "base_pe": 60,
         "success_pe": 100,
         "tam_cn": "8亿",
-        "success_prob": 0.55
+        "success_prob": 0.6
       }
     ],
     "leader_pe_threshold": 50,
@@ -340,7 +340,7 @@
         "base_pe": 35,
         "success_pe": 80,
         "tam_cn": "8亿",
-        "success_prob": 0.4
+        "success_prob": 0.6
       }
     ]
   },
@@ -359,20 +359,74 @@
     "second_tier": [],
     "tech_option_stocks": []
   },
-  "光模块": {
-    "leaders": [],
-    "second_tier": [],
-    "tech_option_stocks": []
-  },
   "HBN": {
     "leaders": [],
     "second_tier": [],
     "tech_option_stocks": []
   },
   "HBM": {
-    "leaders": [],
-    "second_tier": [],
-    "tech_option_stocks": []
+    "sector_name": "HBM高带宽存储",
+    "leaders": [
+      {
+        "code": "688008",
+        "name": "澜起科技",
+        "symbol": "688008.SH"
+      },
+      {
+        "code": "002156",
+        "name": "通富微电",
+        "symbol": "002156.SZ"
+      },
+      {
+        "code": "002409",
+        "name": "雅克科技",
+        "symbol": "002409.SZ"
+      }
+    ],
+    "second_tier": [
+      {
+        "code": "688535",
+        "name": "华海诚科",
+        "symbol": "688535.SH",
+        "catalyst": "HBM底部填充胶/EMC国产替代"
+      },
+      {
+        "code": "002436",
+        "name": "兴森科技",
+        "symbol": "002436.SZ",
+        "catalyst": "FCBGA载板AI/HBM基板需求"
+      },
+      {
+        "code": "688082",
+        "name": "盛美上海",
+        "symbol": "688082.SH",
+        "catalyst": "TSV清洗/电镀设备受益HBM放量"
+      }
+    ],
+    "tech_option_stocks": [
+      {
+        "code": "603986",
+        "name": "兆易创新",
+        "symbol": "603986.SH",
+        "tech": "自研DRAM/HBM研发",
+        "stage": "研发阶段",
+        "base_pe": 40,
+        "success_pe": 80,
+        "tam_cn": "数百亿",
+        "success_prob": 0.35
+      },
+      {
+        "code": "300223",
+        "name": "北京君正",
+        "symbol": "300223.SZ",
+        "tech": "车规LPDDR/自研DRAM",
+        "stage": "量产/迭代",
+        "base_pe": 35,
+        "success_pe": 70,
+        "tam_cn": "百亿",
+        "success_prob": 0.5
+      }
+    ]
   },
   "功率半导体": {
     "leaders": [],
@@ -390,6 +444,11 @@
     "tech_option_stocks": []
   },
   "薄膜铌酸锂": {
+    "leaders": [],
+    "second_tier": [],
+    "tech_option_stocks": []
+  },
+  "CPU": {
     "leaders": [],
     "second_tier": [],
     "tech_option_stocks": []

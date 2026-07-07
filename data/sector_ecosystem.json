@@ -525,19 +525,6 @@
     "key_products": [],
     "technologies": []
   },
-  "光模块": {
-    "name": "光模块",
-    "tier": 2,
-    "description": "用户自定义板块（待补充产业链数据）",
-    "include_sectors": [
-      "光模块"
-    ],
-    "upstream": [],
-    "downstream": [],
-    "related": [],
-    "key_products": [],
-    "technologies": []
-  },
   "HBN": {
     "name": "HBN",
     "tier": 2,
@@ -609,6 +596,19 @@
     "description": "用户自定义板块（待补充产业链数据）",
     "include_sectors": [
       "薄膜铌酸锂"
+    ],
+    "upstream": [],
+    "downstream": [],
+    "related": [],
+    "key_products": [],
+    "technologies": []
+  },
+  "CPU": {
+    "name": "CPU",
+    "tier": 2,
+    "description": "用户自定义板块（待补充产业链数据）",
+    "include_sectors": [
+      "CPU"
     ],
     "upstream": [],
     "downstream": [],
