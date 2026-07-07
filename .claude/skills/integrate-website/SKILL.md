@@ -1,7 +1,7 @@
 ---
 name: integrate-website
 description: |
-  把 /opt/stocks 的能力（chain_agent / skills/deep-analyze 的参数、环境变量、输出格式）
+  把 /opt/stocks 的能力（chain_agent / skills.deep-analyze / skills.valuation-lens 的参数、环境变量、输出格式）
   集成到 /home/smallsite-vue 网站的产业链任务表单和报告页。
   触发词：「集成到网站」「加到网页」「前端展示」「网页上加」「admin-stocks 加」「任务表单加」
   不触发：纯 /opt/stocks CLI 改动、纯 Python pipeline 改动（不涉及网站前端的）。
@@ -16,13 +16,14 @@ description: |
 ─────────────                  ───────────────────
 Python CLI + LLM pipeline  ←── Vue3 + Express + SQLite
 chain_agent/                     backend/src/api/admin-stocks.ts
-skills/deep-analyze/             （任务调度 + spawn 子进程）
+skills/{deep-analyze,            （任务调度 + spawn 子进程）
+        valuation-lens}/
                                  frontend/src/views/admin/StocksTasks.vue
                                  frontend/src/views/admin/StocksReports.vue
 ```
 
 **调用链**：
-网页表单 → `POST /api/admin/stocks/tasks` → `stocks_tasks` SQLite 队列 → 10s tick worker → `spawn` 子进程 `/opt/stocks/.venv/bin/python -m {chain_agent.agent | skills.deep-analyze}` → 写 markdown 报告到 `STOCKS_OUTPUT_DIR` → `stocks_tasks.output_file` 记录路径 → 网页展示。
+网页表单 → `POST /api/admin/stocks/tasks` → `stocks_tasks` SQLite 队列 → 10s tick worker → `spawn` 子进程 `/opt/stocks/.venv/bin/python -m {chain_agent.agent | skills.deep-analyze | skills.valuation-lens}` → 写 markdown 报告到 `STOCKS_OUTPUT_DIR` → `stocks_tasks.output_file` 记录路径 → 网页展示。
 
 ## 关键文件清单
 
@@ -34,7 +35,7 @@ skills/deep-analyze/             （任务调度 + spawn 子进程）
 | 前端 API 层 | `/home/smallsite-vue/frontend/src/api/index.ts` | `StocksTask` interface、`stocksApi.createTask` payload（line 408 起） |
 | 前端任务页 | `/home/smallsite-vue/frontend/src/views/admin/StocksTasks.vue` | 表单 + 任务列表表格 |
 | 前端报告页 | `/home/smallsite-vue/frontend/src/views/admin/StocksReports.vue` | 报告列表 + 内容展示 |
-| Python 入口 | `/opt/stocks/chain_agent/agent.py`、`/opt/stocks/skills/deep-analyze/__main__.py` | 接受 CLI 参数 + 环境变量 |
+| Python 入口 | `/opt/stocks/chain_agent/agent.py`、`/opt/stocks/skills/{deep-analyze,valuation-lens}/__main__.py` | 接受 CLI 参数 + 环境变量 |
 | 站点编码规范 | `/home/smallsite-vue/CLAUDE.md` | TypeScript strict、Element Plus、better-sqlite3 单例 |
 
 ## 任务类型与 spawn 模式
@@ -43,9 +44,12 @@ skills/deep-analyze/             （任务调度 + spawn 子进程）
 
 | task_type | Python 模块 | 典型参数 |
 |---|---|---|
-| `chain`（默认） | `chain_agent.agent` | `<sector> --days N --top-n N --tavily-results N --llm\|--json --out file` |
-| `deep_chain` | `skills.deep-analyze` | `--chain <sector> --top-n N --days N --out file.md` |
-| `stock` | `skills.deep-analyze` | `--stock <input> --days N --out file.md` |
+| `chain`（默认） | `chain_agent.agent` / `us_chain_agent.agent`（`market='us'`） | `<sector> --days N --top-n N --tavily-results N --llm\|--json --out file` |
+| `deep_chain` | `skills.deep-analyze` / `skills.us-deep-analyze` | `--chain <sector> --top-n N --days N --out file.md` |
+| `stock` | `skills.deep-analyze` / `skills.us-deep-analyze` | `--stock <input> --days N --out file.md` |
+| `valuation` | `skills.valuation-lens`（**仅 A 股，无 US 镜像**；`market='us'` + `valuation` 在 `POST /tasks` 已拦截） | `--chain <sector> --top-n N --days N --out file.md` |
+
+> `market='us'` 时 `buildAgentArgs` 把 chain/deep/stock 三个 task_type 的模块换成 `us_chain_agent` / `skills.us-deep-analyze`；`valuation` 无 US 版，美股请求走不到该分支。
 
 `runTask(task)` 在 `admin-stocks.ts:633-690`：
 - `spawn(STOCKS_VENV_PYTHON, ['-m', agentModule, ...args], { cwd: STOCKS_ROOT, env: {...process.env, PYTHONUNBUFFERED:'1', <自定义 env>} })`

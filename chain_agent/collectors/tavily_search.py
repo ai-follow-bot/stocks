@@ -3,9 +3,13 @@ Layer 2: Tavily AI 深度搜索（重写）
 
 多 Key 轮询，配额耗尽自动 failover。
 算法借鉴 ~/.hermes/scripts/investment-research/tavily_search.py（独立重写）。
+
+进度/诊断日志一律走 stderr（不污染 stdout）——skills 的 --json 输出在 stdout，
+若 key 轮询日志也走 stdout 会破坏 JSON 解析（CLI 校验 + 任何 JSON.parse stdout 的消费方）。
 """
 
 import json
+import sys
 import time
 from datetime import datetime
 from pathlib import Path
@@ -59,17 +63,17 @@ class TavilyKeyManager:
         for _ in range(len(self.keys)):
             self.current_index = (self.current_index + 1) % len(self.keys)
             if self.current_index not in self.failed_keys:
-                print(f"🔄 切换到 Key #{self.current_index + 1}")
+                print(f"🔄 切换到 Key #{self.current_index + 1}", file=sys.stderr)
                 return self.keys[self.current_index]
             if self.current_index == original:
                 break
-        print("❌ 所有 Key 都已耗尽或失败")
+        print("❌ 所有 Key 都已耗尽或失败", file=sys.stderr)
         return None
 
     def mark_failed(self, index: int, reason: str = ""):
         self.failed_keys.add(index)
         self.usage_stats[index]["failed"] += 1
-        print(f"⚠️ Key #{index + 1} 标记失败: {reason}")
+        print(f"⚠️ Key #{index + 1} 标记失败: {reason}", file=sys.stderr)
 
     def mark_success(self, index: int):
         self.usage_stats[index]["success"] += 1
@@ -161,7 +165,8 @@ class TavilySearch:
                     else:
                         break
                 else:
-                    print(f"⚠️ 请求失败 (attempt {attempt + 1}/{max_retries}): {e}")
+                    print(f"⚠️ 请求失败 (attempt {attempt + 1}/{max_retries}): {e}",
+                          file=sys.stderr)
                     if attempt < max_retries - 1:
                         time.sleep(1)
                         continue
@@ -179,9 +184,9 @@ class TavilySearch:
         sector = config.to_under(sector)
         search_query = query or DEFAULT_QUERIES.get(sector, f"{sector} 行业 2025")
 
-        print(f"🔍 搜索 [{sector}]: {search_query}")
+        print(f"🔍 搜索 [{sector}]: {search_query}", file=sys.stderr)
         stats = self.key_manager.stats()
-        print(f"📊 Key 统计: {stats['working_keys']}/{stats['total_keys']} 可用")
+        print(f"📊 Key 统计: {stats['working_keys']}/{stats['total_keys']} 可用", file=sys.stderr)
 
         try:
             def do_search(client):
@@ -214,12 +219,13 @@ class TavilySearch:
             with open(result_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
 
-            print(f"✅ 搜索完成: {len(response.get('results', []))} 条 (Key #{self.key_manager.current_index + 1})")
-            print(f"💾 已保存: {result_file}")
+            print(f"✅ 搜索完成: {len(response.get('results', []))} 条 "
+                  f"(Key #{self.key_manager.current_index + 1})", file=sys.stderr)
+            print(f"💾 已保存: {result_file}", file=sys.stderr)
             return data
 
         except Exception as e:
-            print(f"❌ 搜索失败: {e}")
+            print(f"❌ 搜索失败: {e}", file=sys.stderr)
             return {
                 "sector": sector, "query": search_query, "error": str(e),
                 "answer": "", "results": [],
@@ -237,5 +243,5 @@ class TavilySearch:
                 )
             return self._execute_with_retry(do_search)
         except Exception as e:
-            print(f"搜索出错: {e}")
+            print(f"搜索出错: {e}", file=sys.stderr)
             return None

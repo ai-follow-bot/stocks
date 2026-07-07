@@ -18,151 +18,24 @@ from chain_agent.collectors.tavily_search import TavilySearch
 from chain_agent.collectors.zhipu_search import ZhipuSearch
 from chain_agent.collectors import news_akshare
 from chain_agent.collectors import search_cache
+from chain_agent.collectors.snippet import snippet
 from chain_agent.discovery.stock_detector import StockDetector
+from chain_agent.knowledge.archive import (
+    get_stock_deep_facts,
+    get_stock_key_facts,
+    load_archive as _load_archive,
+    save_archive as _save_archive,
+    strip_evidence_prefix as _strip_ev,
+)
 from chain_agent.llm.client import get_llm_client
+from chain_agent.llm.parse import json_from_llm, split_text_and_json
 
 from . import prompts
 
 
 # ===== 工具 =====
-def _json_from_llm(text: str):
-    """从 LLM 输出中抠出 JSON（容忍 markdown 围栏 + 多 JSON 块 + 顶层为数组）。
-
-    用字符级栈匹配找首个完整的 {...} 对象或 [...] 数组（跟踪字符串引号/转义，
-    避免被对象/数组内部的 `{`/`}`/`[`/`]` 干扰），失败则继续找下一个 `{`/`[` 重试。
-
-    返回类型不固定：对象 → dict，数组 → list，无匹配 → None。
-    下游调用方需 isinstance 判断类型。
-    """
-    if not text:
-        return None
-    # 去掉 markdown 代码块
-    t = re.sub(r"^```(?:json)?\s*", "", text.strip(), flags=re.MULTILINE)
-    t = re.sub(r"\s*```$", "", t.strip())
-
-    i = 0
-    n = len(t)
-    while i < n:
-        # 找下一个 { 或 [
-        brace_obj = t.find("{", i)
-        brace_arr = t.find("[", i)
-        # 选更靠前的那个；只出现一种时取那个
-        if brace_obj < 0 and brace_arr < 0:
-            return None
-        elif brace_obj < 0:
-            brace = brace_arr
-            open_ch, close_ch = "[", "]"
-        elif brace_arr < 0:
-            brace = brace_obj
-            open_ch, close_ch = "{", "}"
-        else:
-            if brace_obj <= brace_arr:
-                brace, open_ch, close_ch = brace_obj, "{", "}"
-            else:
-                brace, open_ch, close_ch = brace_arr, "[", "]"
-        # 栈匹配：从 brace 开始扫到栈空
-        depth = 0
-        in_str = False
-        esc = False
-        end = -1
-        j = brace
-        while j < n:
-            ch = t[j]
-            if in_str:
-                if esc:
-                    esc = False
-                elif ch == "\\":
-                    esc = True
-                elif ch == '"':
-                    in_str = False
-            else:
-                if ch == '"':
-                    in_str = True
-                elif ch == open_ch:
-                    depth += 1
-                elif ch == close_ch:
-                    depth -= 1
-                    if depth == 0:
-                        end = j
-                        break
-            j += 1
-        if end < 0:
-            return None
-        candidate = t[brace:end + 1]
-        try:
-            return json.loads(candidate)
-        except Exception:
-            # 这个块解析失败，从 end 之后找下一个 { 或 [
-            i = end + 1
-    return None
-
-
-def _split_text_and_json(text: str):
-    """从 LLM 输出中分离前置文本和 JSON 数据。
-
-    返回 (preamble_text, json_data)。
-    preamble_text 是 JSON 之前的前置文字（已清理 markdown 围栏）。
-    json_data 是首个成功解析的 JSON 对象/数组，无则 None。
-    """
-    if not text:
-        return "", None
-    # 去掉 markdown 代码块（保留代码块外的文字）
-    t = re.sub(r"^```(?:json)?\s*", "", text.strip(), flags=re.MULTILINE)
-    t = re.sub(r"\s*```$", "", t.strip())
-
-    i = 0
-    n = len(t)
-    while i < n:
-        brace_obj = t.find("{", i)
-        brace_arr = t.find("[", i)
-        if brace_obj < 0 and brace_arr < 0:
-            return t.strip(), None
-        elif brace_obj < 0:
-            brace = brace_arr
-            open_ch, close_ch = "[", "]"
-        elif brace_arr < 0:
-            brace = brace_obj
-            open_ch, close_ch = "{", "}"
-        else:
-            if brace_obj <= brace_arr:
-                brace, open_ch, close_ch = brace_obj, "{", "}"
-            else:
-                brace, open_ch, close_ch = brace_arr, "[", "]"
-        depth = 0
-        in_str = False
-        esc = False
-        end = -1
-        j = brace
-        while j < n:
-            ch = t[j]
-            if in_str:
-                if esc:
-                    esc = False
-                elif ch == "\\":
-                    esc = True
-                elif ch == '"':
-                    in_str = False
-            else:
-                if ch == '"':
-                    in_str = True
-                elif ch == open_ch:
-                    depth += 1
-                elif ch == close_ch:
-                    depth -= 1
-                    if depth == 0:
-                        end = j
-                        break
-            j += 1
-        if end < 0:
-            return t.strip(), None
-        candidate = t[brace:end + 1]
-        try:
-            data = json.loads(candidate)
-            preamble = t[:brace].strip()
-            return preamble, data
-        except Exception:
-            i = end + 1
-    return t.strip(), None
+# json_from_llm / split_text_and_json 复用 chain_agent/llm/parse.py（行为与原本地实现一致）
+# snippet 复用 chain_agent/collectors/snippet.py（里程碑关键词锚定，跳过导航 boilerplate）
 
 
 def _get_search_provider():
@@ -341,7 +214,7 @@ def decompose_chain(chain: str) -> Optional[dict]:
     text = _llm_call_with_continue(prompts.DECOMPOSE_SYSTEM, user)
     if not text:
         return None
-    data = _json_from_llm(text)
+    data = json_from_llm(text)
     if not data or "segments" not in data:
         print(f"[deep-analyze] 拆解 JSON 解析失败，原文: {text[:200]}", file=sys.stderr)
         return None
@@ -416,7 +289,7 @@ def _segment_search(provider, provider_name: Optional[str], segment_name: str,
                 t_idx += 1
                 eid = f"T{t_idx}"
                 title = res.get("title", "")
-                content = (res.get("content") or "")[:300]
+                content = snippet(res.get("content") or "")
                 url = res.get("url", "")
                 evidence[eid] = {
                     "title": title,
@@ -447,7 +320,7 @@ def _segment_search(provider, provider_name: Optional[str], segment_name: str,
             for a_idx, news in enumerate(r.get("news", [])[:8], start=1):
                 eid = f"A{a_idx}"
                 title = news.get("title", "")
-                content = (news.get("content") or "")[:300]
+                content = snippet(news.get("content") or "")
                 pub = news.get("publish_time", "")
                 evidence[eid] = {
                     "title": title,
@@ -532,7 +405,7 @@ def _customer_search(provider, provider_name: Optional[str],
                 c_idx += 1
                 eid = f"C{c_idx}"
                 title = res.get("title", "")
-                content = (res.get("content") or "")[:300]
+                content = snippet(res.get("content") or "")
                 url = res.get("url", "")
                 evidence[eid] = {
                     "title": title,
@@ -618,7 +491,7 @@ def identify_bottlenecks(chain_data: dict, search_results: dict) -> Optional[dic
     text = _llm_call_with_continue(prompts.BOTTLENECK_SYSTEM, user)
     if not text:
         return None
-    data = _json_from_llm(text)
+    data = json_from_llm(text)
     if not data:
         print(f"[deep-analyze] 卡脖子 JSON 解析失败: {text[:200]}", file=sys.stderr)
         return None
@@ -746,6 +619,8 @@ def score_candidates(chain_data: dict, bottleneck_data: dict,
 
     candidates.sort(key=lambda c: _candidate_sort_key(c, bottleneck_segments, quotes))
     candidates = candidates[:top_n * 2]
+    print(f"[deep-analyze] 候选池截断: {len(candidates)} 只 (top_n={top_n}, top_n*2={top_n*2})",
+          file=sys.stderr)
 
     bottleneck_summary = json.dumps({
         "top_bottlenecks": bottleneck_data.get("top_bottlenecks", []),
@@ -773,12 +648,24 @@ def score_candidates(chain_data: dict, bottleneck_data: dict,
     print(f"[deep-analyze] 评分分批: {len(candidates)} 只候选 / {len(batches)} 批 "
           f"(batch_size={SCORE_BATCH_SIZE})", file=sys.stderr)
 
+    # 注入历史认知作背景 prior（只读，勿照搬旧结论/旧分数）：
+    # - val_lens：valuation-lens 档案上次综合（稀缺/前瞻/供需维度）
+    # - deep：本 skill 上次评分结论（供需/国产替代/业绩兑现维度）—— 自身积累的复用
+    for c in candidates:
+        code = c.get("code")
+        kf = get_stock_key_facts(code)
+        deep_kf = get_stock_deep_facts(code)
+        if kf or deep_kf:
+            c["background_prior"] = {"val_lens": kf, "deep": deep_kf}
+
     out_cands: list = []
     raw_llm_snippets: list = []
     batch_preambles: dict = {}
     any_batch_truncated = False
 
-    for idx, batch in enumerate(batches, 1):
+    def _call_scoring_batch(batch):
+        """对一批候选调 LLM 评分。返回 (batch_out, preamble, fail_raw, truncated)。
+        batch_out 空=失败（无响应或 JSON 解析失败）；fail_raw 为失败时的原文片段。"""
         user = prompts.SCORING_USER_TEMPLATE.format(
             chain_name=chain_data.get("chain_name", ""),
             bottleneck_summary=bottleneck_summary,
@@ -788,30 +675,12 @@ def score_candidates(chain_data: dict, bottleneck_data: dict,
         )
         meta = _llm_call_meta(prompts.SCORING_SYSTEM, user)
         text = meta.get("text") or ""
-        stop = meta.get("stop_reason")
+        truncated = meta.get("stop_reason") == "max_tokens"
         if not text:
-            print(f"[deep-analyze] [warn] 批 {idx}/{len(batches)} LLM 无响应，"
-                  f"跳过 {len(batch)} 只候选", file=sys.stderr)
-            # 无评分兜底：保留候选，scores 留空（下游渲染为 '-'）
-            out_cands.extend([{**c, "stock_code": c["code"]} for c in batch])
-            continue
-        if stop == "max_tokens":
-            any_batch_truncated = True
-            print(f"[deep-analyze] [warn] 批 {idx}/{len(batches)} 响应被 max_tokens 截断，"
-                  f"尝试解析已返回部分", file=sys.stderr)
-        preamble, data = _split_text_and_json(text)
-        if preamble:
-            # 每批的前置文本取最长的一篇作为整体供需分析
-            if len(preamble) > len(batch_preambles.get("text", "")):
-                batch_preambles["text"] = preamble
+            return [], "", "", False
+        preamble, data = split_text_and_json(text)
         if not data:
-            print(f"[deep-analyze] [warn] 批 {idx}/{len(batches)} JSON 解析失败，"
-                  f"raw_llm[:300]={text[:300]!r}", file=sys.stderr)
-            raw_llm_snippets.append(text[:500])
-            # 兜底：把本批候选原样塞回，scores 留空
-            out_cands.extend([{**c, "stock_code": c["code"]} for c in batch])
-            continue
-        # 规整成 list[dict]
+            return [], preamble or "", text[:500], truncated
         if isinstance(data, list):
             batch_out = data
         elif isinstance(data, dict):
@@ -820,10 +689,41 @@ def score_candidates(chain_data: dict, bottleneck_data: dict,
                 batch_out = [data]
         else:
             batch_out = []
-        print(f"[deep-analyze] 批 {idx}/{len(batches)} 解析出 {len(batch_out)} 只",
-              file=sys.stderr)
-        out_cands.extend(batch_out)
+        return batch_out, preamble or "", "", truncated
 
+    for idx, batch in enumerate(batches, 1):
+        batch_out, preamble, fail_raw, truncated = _call_scoring_batch(batch)
+        if truncated:
+            any_batch_truncated = True
+        if preamble and len(preamble) > len(batch_preambles.get("text", "")):
+            batch_preambles["text"] = preamble
+        if batch_out:
+            print(f"[deep-analyze] 批 {idx}/{len(batches)} 解析出 {len(batch_out)} 只",
+                  file=sys.stderr)
+            out_cands.extend(batch_out)
+            continue
+        # 整批失败 → 逐只重试（小批次更易成功，规避 max_tokens 截断 / 单只畸形输出）
+        reason = "无响应" if not fail_raw else "JSON解析失败"
+        print(f"[deep-analyze] [warn] 批 {idx}/{len(batches)} {reason}，逐只重试", file=sys.stderr)
+        if fail_raw:
+            raw_llm_snippets.append(fail_raw)
+        for c in batch:
+            single_out, sp2, fr2, tr2 = _call_scoring_batch([c])
+            if tr2:
+                any_batch_truncated = True
+            if sp2 and len(sp2) > len(batch_preambles.get("text", "")):
+                batch_preambles["text"] = sp2
+            if single_out:
+                out_cands.extend(single_out)
+                print(f"[deep-analyze]   重试 {c.get('code')} 成功", file=sys.stderr)
+            else:
+                # 兜底：保留候选，scores 留空（下游渲染为 '-'）
+                out_cands.append({**c, "stock_code": c["code"]})
+                if fr2:
+                    raw_llm_snippets.append(fr2)
+                print(f"[deep-analyze]   重试 {c.get('code')} 仍失败，留空", file=sys.stderr)
+
+    print(f"[deep-analyze] 分批评分完成: LLM 输出 {len(out_cands)} 只候选", file=sys.stderr)
     data = {"candidates": out_cands}
     if batch_preambles.get("text"):
         data["supply_demand_analysis"] = batch_preambles["text"]
@@ -876,7 +776,118 @@ def score_candidates(chain_data: dict, bottleneck_data: dict,
         # 兜底：如果 LLM/兜底路径没给 segment，用输入候选的
         if not oc.get("segment"):
             oc["segment"] = src.get("segment", "")
+
+    # ===== 后处理：去重 + 剔除 segment_match=false =====
+    # 1. 按 stock_code 去重（防御 LLM 多输出/兜底重复塞导致候选池超出 top_n*2）
+    seen_codes = set()
+    deduped = []
+    for oc in out_cands:
+        code = oc.get("stock_code") or oc.get("code")
+        if not code or code in seen_codes:
+            continue
+        seen_codes.add(code)
+        deduped.append(oc)
+    if len(deduped) < len(out_cands):
+        print(f"[deep-analyze] 候选去重: {len(out_cands)} → {len(deduped)} 只 "
+              f"(剔除 {len(out_cands) - len(deduped)} 只重复)", file=sys.stderr)
+
+    # 2. 剔除 segment_match=false（LLM 判断标的与环节不匹配）
+    filtered = []
+    dropped_mismatch = 0
+    for oc in deduped:
+        match = oc.get("segment_match")
+        # None/缺失时不剔除（LLM 没输出该字段）
+        is_false = False
+        if isinstance(match, bool):
+            is_false = not match
+        elif isinstance(match, str):
+            is_false = match.strip().lower() in ("false", "0", "no", "否")
+        if is_false:
+            dropped_mismatch += 1
+            name = oc.get("company") or oc.get("name") or oc.get("stock_code") or ""
+            seg = oc.get("segment", "")
+            print(f"[deep-analyze] 剔除环节不匹配: {name} (segment={seg})",
+                  file=sys.stderr)
+            continue
+        filtered.append(oc)
+    print(f"[deep-analyze] 最终候选: {len(filtered)} 只 "
+          f"(剔除 {dropped_mismatch} 只 segment_match=false)", file=sys.stderr)
+
+    data["candidates"] = filtered
     return data
+
+
+# ===== 4b. 跨 skill 档案写回（deep 维度积累互通）=====
+# deep-analyze 把评分中等及以上的标的写回 output/valuation_stock_archive.json，
+# 写 deep_key_facts / deep_score_history（供需/国产替代/业绩兑现 维度）。
+# 与 valuation-lens 的 key_facts / score_history（稀缺/前瞻/供需）分维度共存，
+# 互不覆盖（merge_upsert 语义：只写本 skill 的 key，保留对方 key）。
+_DEEP_ARCHIVE_THRESHOLD = 55   # total_score≥此值才入档（对应 weight "中" 及以上）
+_DEEP_SCORE_HISTORY_CAP = 10
+
+
+def _total_score(c: dict) -> int:
+    """从候选 dict 取 total_score（兼容 top-level 或 scores.total_score）。"""
+    ts = c.get("total_score")
+    if ts is None:
+        ts = (c.get("scores") or {}).get("total_score")
+    try:
+        return int(ts)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _upsert_deep_archive(chain_name: str, scoring_data: Optional[dict]) -> None:
+    """把本次评分中等的标的写回知识档案（deep 维度）。
+
+    - 只写 deep_key_facts / deep_score_history / deep_last_run / deep_runs
+    - 保留 valuation-lens 已写的 key_facts / evidence_pool / score_history（维度不同，不合并）
+    - name / segment / sectors_seen 为共享描述字段，合并更新
+    """
+    if not scoring_data:
+        return
+    cands = scoring_data.get("candidates") or scoring_data.get("segments") or []
+    if not cands:
+        return
+    sec_key = config.to_under(chain_name) if chain_name else ""
+    arc = _load_archive()
+    now_iso = datetime.now().isoformat()
+    n = 0
+    for c in cands:
+        if _total_score(c) < _DEEP_ARCHIVE_THRESHOLD:
+            continue
+        code = c.get("stock_code") or c.get("code")
+        if not code:
+            continue
+        e = arc.get(code) or {}
+        rat = c.get("rationale") or {}
+        sc = c.get("scores") or {}
+        deep_kf = {
+            "supply_demand": _strip_ev(rat.get("supply_demand_reason", "")),
+            "domestic_substitution": _strip_ev(rat.get("domestic_substitution_reason", "")),
+            "earnings_realization": _strip_ev(rat.get("earnings_realization_reason", "")),
+        }
+        dh = list(e.get("deep_score_history") or [])
+        dh.append({"run": now_iso, "sector": sec_key,
+                   "supply_demand": sc.get("supply_demand"),
+                   "domestic_substitution": sc.get("domestic_substitution"),
+                   "earnings_realization": sc.get("earnings_realization"),
+                   "total": _total_score(c)})
+        dh = dh[-_DEEP_SCORE_HISTORY_CAP:]
+        sectors_seen = sorted(set((e.get("sectors_seen") or []) + ([sec_key] if sec_key else [])))
+        # 只写 deep_* + 共享描述字段；val-lens 的 key_facts/evidence_pool/score_history 保留
+        e["name"] = c.get("company") or c.get("name") or e.get("name", "")
+        e["segment"] = c.get("segment") or e.get("segment", "")
+        e["deep_key_facts"] = deep_kf
+        e["deep_score_history"] = dh
+        e["deep_last_run"] = now_iso
+        e["deep_runs"] = (e.get("deep_runs") or 0) + 1
+        e["sectors_seen"] = sectors_seen
+        arc[code] = e
+        n += 1
+    _save_archive(arc)
+    print(f"[deep-analyze] 档案写回 {sec_key or '?'}: 档案共 {len(arc)} 只"
+          f"（本次≥{_DEEP_ARCHIVE_THRESHOLD}分 {n} 只）", file=sys.stderr)
 
 
 # ===== 主入口：chain 模式 =====
@@ -930,6 +941,9 @@ def analyze_chain(chain: str, days: int = 14, top_n: int = 8,
         quotes=quotes,
     ) or {}
 
+    # 跨 skill 档案写回（deep 维度积累，与 valuation-lens 互通）
+    _upsert_deep_archive(chain_data.get("chain_name", chain), scoring_data)
+
     return {
         "mode": "chain",
         "chain_name": chain_data.get("chain_name", chain),
@@ -978,7 +992,7 @@ def analyze_stock(stock_input: str, days: int = 14) -> dict:
 
 格式：{{"business":"...","chain_name":"...","segment":"...","role":"..."}}"""
     text = _llm_call("你是一位 A 股产业研究员，回答要简短准确。", identify_prompt)
-    company_info = _json_from_llm(text) if text else {}
+    company_info = json_from_llm(text) if text else {}
     if not company_info:
         return {"error": f"无法定位 {stock_name} 的产业链", "raw_llm": text}
 
@@ -1011,6 +1025,14 @@ def analyze_stock(stock_input: str, days: int = 14) -> dict:
     print(f"[deep-analyze] 客户搜索: 拉到 {customer_search.get('customer_count', 0)} 条 evidence",
           file=sys.stderr)
 
+    # 跨 skill 历史认知 prior（valuation-lens 档案的稀缺/前瞻/供需 维度，作背景参考）
+    kf = get_stock_key_facts(stock_code)
+    if kf.get("S") or kf.get("F") or kf.get("D"):
+        prior = ("\n# 跨 skill 历史认知（valuation-lens 档案，稀缺/前瞻/供需 维度，背景参考，勿照搬）\n"
+                 f"- 稀缺: {kf.get('S','')}\n- 前瞻: {kf.get('F','')}\n- 供需: {kf.get('D','')}\n")
+    else:
+        prior = ""
+
     user = prompts.STOCK_VERDICT_USER_TEMPLATE.format(
         stock_name=stock_name, stock_code=stock_code,
         business=company_info.get("business", ""),
@@ -1020,6 +1042,7 @@ def analyze_stock(stock_input: str, days: int = 14) -> dict:
         search_data=company_search.get("content_text", "")[:3000],
         customer_data=customer_search.get("content_text", "")[:2000],
         scoring_text=scoring_text,
+        prior=prior,
     )
     verdict_md = _llm_call(prompts.STOCK_VERDICT_SYSTEM, user) or "(LLM 不可用，无法生成判断)"
 

@@ -367,42 +367,9 @@ SCORING_USER_TEMPLATE = """产业链：{chain_name}
 注意：candidates 中每只标的已附 pe/market_cap/change_pct 字段，业绩维度评分必须引用这些数字；pe=null 时给中等分 7 并标注 'PE 数据缺失'。"""
 
 
-# ===== 4. 综合报告（chain 模式）=====
-CHAIN_REPORT_SYSTEM = """你是一位买方投资总监，基于产业链拆解 + 卡脖子分析 + 三维评分，写一份 Markdown 投资报告。
-
-输出原则：
-1. 诚实：数据缺失时明确说"数据缺失"，绝不编造
-2. 结构清晰：产业链图 → 卡脖子分析 → 推荐标的（按权重排序）→ 风险提示
-3. 可执行：每只推荐标的给出推荐理由 + 主要风险 + 关注权重
-4. 产业链视角：优先推荐卡脖子环节的全球竞争力龙头，回避已饱和环节
-5. 直接输出 Markdown，不要包裹在代码块中
-6. 所有分析输出请用简体中文""" + _serenity_lens("chain_report") + _lens("supply_demand", "chain_report", SUPPLY_DEMAND_BLOCKS_US) + _lens("product", "chain_report", PRODUCT_BLOCKS_US)
-
-CHAIN_REPORT_USER_TEMPLATE = """# 任务
-基于以下数据，写「{chain_name}」产业链深度投资分析报告。
-
-# 产业链结构
-{chain_text}
-
-# 卡脖子分析
-{bottleneck_text}
-
-# 三维评分（Top {top_n}）
-{scoring_text}
-
-# 输出要求
-Markdown 报告包含：
-1. **产业链概览**（200字内）：景气度、关键催化、当前供需格局
-2. **卡脖子环节深度分析**：哪些环节卡脖子 + 为什么 + 技术壁垒突破口
-3. **供需 tightness 总览**（独立章节）：按环节总结供需状态与判断依据
-4. **US vs. Global 竞争力对比**（独立章节）：美股公司 vs 全球龙头的真实位置
-5. **核心推荐标的**（5-8 只）：按权重排序，每只给推荐理由/主要风险/关注权重，并标注预计业绩兑现季度与 moat 来源
-6. **业绩兑现节奏表**（独立章节或表格）：核心标的预计兑现季度一览
-7. **核心标的营收与产品拆解**（独立章节，仅产品拆解视角开启时）：每只核心标的 2-4 条主营产品、营收占比、增速、与环节关系
-8. **回避环节**：哪些环节已饱和或格局恶化，应回避
-9. **数据缺口**：本次分析中数据不足的部分
-
-直接输出 Markdown："""
+# ===== 4. 综合报告（chain 模式，确定性渲染，无 LLM prompt）=====
+# chain 报告由 report.py::render_chain_report 直接从 chain_data/bottleneck/scoring 渲染 Markdown，
+# 不走 LLM（早期设计的 CHAIN_REPORT_SYSTEM/USER_TEMPLATE 从未被调用，已移除）。
 
 
 # ===== 5. 单股判断（stock 模式）=====

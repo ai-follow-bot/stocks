@@ -274,10 +274,11 @@ SCORING_SYSTEM = """你是一位买方研究员，按三维度给候选投资标
 {
   "company": "公司名",
   "stock_code": "股票代码",
-  "segment": "所处环节",
+  "segment": "所处环节（若候选池给的环节与公司主营不符，自动修正为正确环节名）",
+  "segment_match": true/false,  // 公司主营业务与该产业链环节是否相关；false 表示标的与环节不匹配（如证券公司被归到光刻胶环节）
   "scores": {
-    "supply_demand": 0~30 整数，
-    "domestic_substitution": 0~30 整数，
+    "supply_demand": 0~30 整数,
+    "domestic_substitution": 0~30 整数,
     "earnings_realization": 0~40 整数
   },
   "total_score": 0~100 整数（三维度之和）,
@@ -287,7 +288,7 @@ SCORING_SYSTEM = """你是一位买方研究员，按三维度给候选投资标
     "earnings_realization_reason": "业绩兑现维度评分理由"
   },
   "key_risks": ["风险1", "风险2"],
-  "weight": "高 | 中 | 低"  // ≥75=高, 55-75=中, <55=低
+  "weight": "高 | 中 | 低"  // ≥75=高, 55-75=中, <55=低；segment_match=false 时强制为"低"
 }
 
 如果同时开启产品拆解视角，每只标的还需包含 `product_breakdown` 字段（无数据则给 null）：
@@ -299,6 +300,11 @@ SCORING_SYSTEM = """你是一位买方研究员，按三维度给候选投资标
   ],
   "summary": "一句话营收结构总结"
 }
+
+若候选含 `background_prior` 字段（历史认知，作背景参考，勿照搬旧结论/旧分数）：
+- `val_lens`：valuation-lens 档案上次综合（稀缺/前瞻/供需维度）
+- `deep`：本 skill 上次评分结论（供需/国产替代/业绩兑现维度）
+本 skill 仍按本次 evidence 独立评分，用历史认知做增量确认/修正，不要照搬旧结论或旧分数。
 
 评分细则：
 - **供需关系（30分）**：所处环节供应紧张度（15）+ 公司市占率/产能弹性（15）
@@ -313,16 +319,26 @@ SCORING_SYSTEM = """你是一位买方研究员，按三维度给候选投资标
   - 已有明确大订单 + 产能下季度释放 + 远期 PE 显著低于当前 → 32-40
   - 订单可见但产能需 6-12 个月 → 22-30
   - 故事为主、业绩兑现远 → 10-18
+  - **PE 阶梯扣分硬约束**（必须严格执行，不得以"高成长性"为由突破）：
+    - PE > 500 → 业绩分上限 10
+    - PE > 200 → 业绩分上限 15
+    - PE > 100 → 业绩分上限 20
+    - PE 为 null → PE 子维度给中等分 7（维持原规则）
 
 评分原则：
 - 不允许编造数字，必须基于提供的搜索数据 + 候选标的 dict 中的 pe/market_cap/change_pct
 - **业绩维度的 PE 评分必须引用候选 dict 中的 pe 字段**：
-  - pe 为数字 → 用该数字评判（如 "PE=35，处于行业中位"）
+  - pe 为数字 → 用该数字评判（如 "PE=35，处于行业中位"），并严格执行 PE 阶梯扣分硬约束
   - pe 为 null → 该子维度给中等分 7，并在 earnings_realization_reason 中标注 "PE 数据缺失"
 - market_cap 用于判断流动性/弹性：市值 <100亿 弹性大，>500亿 偏稳健
 - change_pct 用于辅助判断短期情绪：近 5 日涨幅 >10% 可能已反映预期
 - 数据缺失的维度给中等分（15/15/20）并在理由中标注"数据缺失"
-- 同环节的多家公司要拉开差距（不要全给一样的分）""" + _serenity_lens("scoring") + _lens("supply_demand", "scoring", SUPPLY_DEMAND_BLOCKS) + _product_lens("scoring")
+- 同环节的多家公司要拉开差距（不要全给一样的分）
+- **segment_match 判断**：根据公司名称和搜索数据判断其主营业务是否真的属于该产业链环节。
+  - true = 公司主营与环节相关（如"海光信息"归"芯片设计"）
+  - false = 公司主营与环节无关（如"东兴证券"被归"光刻胶"、"东方财富"被归"芯片设计"、"怡合达"被归"芯片设计"）
+  - segment_match=false 时 weight 强制为"低"，total_score 不超过 50
+  - 若候选池给的 segment 字段与公司主营不符但公司确实在产业链内，修正 segment 字段而非标 false（如"中微公司"被标"光刻胶"应修正为"刻蚀设备/半导体设备"环节；若本产业链未拆该环节则可标 false）""" + _serenity_lens("scoring") + _lens("supply_demand", "scoring", SUPPLY_DEMAND_BLOCKS) + _product_lens("scoring")
 
 SCORING_USER_TEMPLATE = """产业链：{chain_name}
 
@@ -340,46 +356,14 @@ SCORING_USER_TEMPLATE = """产业链：{chain_name}
 
 输出结构：
 1. 在公司评分数组之前，先用 1-2 段文字输出**产业链整体供需分析**（见 system prompt 要求），这段文字直接放在 JSON 对象前面，作为独立文本
-2. 然后输出 JSON 对象，每个候选对象含字段：company / stock_code / segment / scores{{supply_demand, domestic_substitution, earnings_realization}} / total_score / rationale{{supply_demand_reason, domestic_substitution_reason, earnings_realization_reason}} / key_risks / weight
+2. 然后输出 JSON 对象，每个候选对象含字段：company / stock_code / segment / segment_match / scores{{supply_demand, domestic_substitution, earnings_realization}} / total_score / rationale{{supply_demand_reason, domestic_substitution_reason, earnings_realization_reason}} / key_risks / weight
 
-注意：candidates 中每只标的已附 pe/market_cap/change_pct 字段，业绩维度评分必须引用这些数字；pe=null 时给中等分 7 并标注 'PE 数据缺失'。"""
+注意：candidates 中每只标的已附 pe/market_cap/change_pct 字段，业绩维度评分必须引用这些数字；pe=null 时给中等分 7 并标注 'PE 数据缺失'。PE 阶梯扣分硬约束（PE>500 业绩上限10、PE>200 上限15、PE>100 上限20）必须严格执行，不得以"高成长性"为由突破。segment_match=false 的标的 weight 强制"低"、total_score 不超过 50。"""
 
 
-# ===== 4. 综合报告（chain 模式）=====
-CHAIN_REPORT_SYSTEM = """你是一位买方投资总监，基于产业链拆解 + 卡脖子分析 + 三维评分，写一份 Markdown 投资报告。
-
-输出原则：
-1. 诚实：数据缺失时明确说"数据缺失"，绝不编造
-2. 结构清晰：产业链图 → 卡脖子分析 → 推荐标的（按权重排序）→ 风险提示
-3. 可执行：每只推荐标的给出推荐理由 + 主要风险 + 关注权重
-4. 产业链视角：优先推荐卡脖子环节的国产替代龙头，回避已饱和环节
-5. 直接输出 Markdown，不要包裹在代码块中""" + _serenity_lens("chain_report") + _lens("supply_demand", "chain_report", SUPPLY_DEMAND_BLOCKS) + _product_lens("chain_report")
-
-CHAIN_REPORT_USER_TEMPLATE = """# 任务
-基于以下数据，写「{chain_name}」产业链深度投资分析报告。
-
-# 产业链结构
-{chain_text}
-
-# 卡脖子分析
-{bottleneck_text}
-
-# 三维评分（Top {top_n}）
-{scoring_text}
-
-# 输出要求
-Markdown 报告包含：
-1. **产业链概览**（200字内）：景气度、关键催化、当前供需格局
-2. **卡脖子环节深度分析**：哪些环节卡脖子 + 为什么 + 国产替代突破口
-3. **供需 tightness 总览**（独立章节）：按环节总结供需状态与判断依据
-4. **中外竞争力对比**（独立章节）：国内公司 vs 海外龙头的真实位置
-5. **核心推荐标的**（5-8 只）：按权重排序，每只给推荐理由/主要风险/关注权重，并标注预计业绩兑现季度与 moat 来源
-6. **业绩兑现节奏表**（独立章节或表格）：核心标的预计兑现季度一览
-7. **核心标的营收与产品拆解**（独立章节，仅产品拆解视角开启时）：每只核心标的 2-4 条主营产品、营收占比、增速、与环节关系
-8. **回避环节**：哪些环节已饱和或格局恶化，应回避
-9. **数据缺口**：本次分析中数据不足的部分
-
-直接输出 Markdown："""
+# ===== 4. 综合报告（chain 模式，确定性渲染，无 LLM prompt）=====
+# chain 报告由 report.py::render_chain_report 直接从 chain_data/bottleneck/scoring 渲染 Markdown，
+# 不走 LLM（早期设计的 CHAIN_REPORT_SYSTEM/USER_TEMPLATE 从未被调用，已移除）。
 
 
 # ===== 5. 单股判断（stock 模式）=====
@@ -412,7 +396,7 @@ STOCK_VERDICT_USER_TEMPLATE = """# 任务
 
 # 同环节候选标的的三维评分
 {scoring_text}
-
+{prior}
 # 输出要求
 Markdown 报告包含：
 1. **公司画像**（150字内）：主营业务 + 在产业链中的卡位

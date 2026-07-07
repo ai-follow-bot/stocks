@@ -132,6 +132,24 @@ def render_chain_report(result: dict) -> str:
     low_news = [seg for seg, d in search_stats.items() if d.get("akshare_news_count", 0) == 0]
     if low_news:
         gaps.append(f"- 以下环节 akshare 新闻命中为 0: {', '.join(low_news)}")
+    # 候选股层面数据缺口
+    if candidates:
+        pe_null = sum(1 for c in candidates if c.get("pe") is None)
+        mktcap_null = sum(1 for c in candidates if c.get("market_cap") is None)
+        if pe_null > 0:
+            gaps.append(f"- {pe_null}/{len(candidates)} 只候选股 PE 数据缺失（业绩维度评分置信度低）")
+        if mktcap_null > 0:
+            gaps.append(f"- {mktcap_null}/{len(candidates)} 只候选股市值数据缺失（流动性判断受限）")
+        # 回收 LLM 评分理由里的"数据缺失"信号
+        missing_signal = 0
+        for c in candidates:
+            rat = c.get("rationale", {}) if isinstance(c.get("rationale"), dict) else {}
+            for v in rat.values():
+                if isinstance(v, str) and "数据缺失" in v:
+                    missing_signal += 1
+                    break
+        if missing_signal > 0:
+            gaps.append(f"- {missing_signal} 只候选股 LLM 评分理由含'数据缺失'（详见评分明细）")
     if not gaps:
         gaps.append("- 暂无明显缺口")
     lines.extend(gaps)

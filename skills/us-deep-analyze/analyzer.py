@@ -25,7 +25,9 @@ from typing import Dict, List, Optional
 from chain_agent import config  # 复用 to_under / OUTPUT_DIR
 from chain_agent.collectors.tavily_search import TavilySearch
 from chain_agent.collectors.zhipu_search import ZhipuSearch
+from chain_agent.collectors.snippet import snippet
 from chain_agent.llm.client import get_llm_client
+from chain_agent.llm.parse import json_from_llm as _json_from_llm
 
 from us_chain_agent import config as us_config
 from us_chain_agent.collectors import news_finnhub
@@ -36,76 +38,8 @@ from . import prompts
 
 
 # ===== 工具 =====
-def _json_from_llm(text: str):
-    """从 LLM 输出中抠出 JSON（容忍 markdown 围栏 + 多 JSON 块 + 顶层为数组）。
-
-    用字符级栈匹配找首个完整的 {...} 对象或 [...] 数组（跟踪字符串引号/转义，
-    避免被对象/数组内部的 `{`/`}`/`[`/`]` 干扰），失败则继续找下一个 `{`/`[` 重试。
-
-    返回类型不固定：对象 → dict，数组 → list，无匹配 → None。
-    下游调用方需 isinstance 判断类型。
-    """
-    if not text:
-        return None
-    # 去掉 markdown 代码块
-    t = re.sub(r"^```(?:json)?\s*", "", text.strip(), flags=re.MULTILINE)
-    t = re.sub(r"\s*```$", "", t.strip())
-
-    i = 0
-    n = len(t)
-    while i < n:
-        # 找下一个 { 或 [
-        brace_obj = t.find("{", i)
-        brace_arr = t.find("[", i)
-        # 选更靠前的那个；只出现一种时取那个
-        if brace_obj < 0 and brace_arr < 0:
-            return None
-        elif brace_obj < 0:
-            brace = brace_arr
-            open_ch, close_ch = "[", "]"
-        elif brace_arr < 0:
-            brace = brace_obj
-            open_ch, close_ch = "{", "}"
-        else:
-            if brace_obj <= brace_arr:
-                brace, open_ch, close_ch = brace_obj, "{", "}"
-            else:
-                brace, open_ch, close_ch = brace_arr, "[", "]"
-        # 栈匹配：从 brace 开始扫到栈空
-        depth = 0
-        in_str = False
-        esc = False
-        end = -1
-        j = brace
-        while j < n:
-            ch = t[j]
-            if in_str:
-                if esc:
-                    esc = False
-                elif ch == "\\":
-                    esc = True
-                elif ch == '"':
-                    in_str = False
-            else:
-                if ch == '"':
-                    in_str = True
-                elif ch == open_ch:
-                    depth += 1
-                elif ch == close_ch:
-                    depth -= 1
-                    if depth == 0:
-                        end = j
-                        break
-            j += 1
-        if end < 0:
-            return None
-        candidate = t[brace:end + 1]
-        try:
-            return json.loads(candidate)
-        except Exception:
-            # 这个块解析失败，从 end 之后找下一个 { 或 [
-            i = end + 1
-    return None
+# _json_from_llm 复用共享 chain_agent/llm/parse.py（import 别名，行为与原本地实现一致）
+# snippet 复用共享 chain_agent/collectors/snippet.py（里程碑关键词锚定，跳过导航 boilerplate）
 
 
 def _get_search_provider():
@@ -271,7 +205,7 @@ def _segment_search(provider, provider_name: Optional[str], segment_name: str,
                 t_idx += 1
                 eid = f"T{t_idx}"
                 title = res.get("title", "")
-                content = (res.get("content") or "")[:300]
+                content = snippet(res.get("content") or "")
                 url = res.get("url", "")
                 evidence[eid] = {
                     "title": title,
@@ -302,7 +236,7 @@ def _segment_search(provider, provider_name: Optional[str], segment_name: str,
             for a_idx, news in enumerate(r.get("news", [])[:8], start=1):
                 eid = f"A{a_idx}"
                 title = news.get("title", "")
-                content = (news.get("content") or "")[:300]
+                content = snippet(news.get("content") or "")
                 pub = news.get("publish_time", "")
                 evidence[eid] = {
                     "title": title,
@@ -367,7 +301,7 @@ def _customer_search(provider, provider_name: Optional[str],
                 c_idx += 1
                 eid = f"C{c_idx}"
                 title = res.get("title", "")
-                content = (res.get("content") or "")[:300]
+                content = snippet(res.get("content") or "")
                 url = res.get("url", "")
                 evidence[eid] = {
                     "title": title,
@@ -609,7 +543,9 @@ def score_candidates(chain_data: dict, bottleneck_data: dict,
     raw_llm_snippets: list = []
     any_batch_truncated = False
 
-    for idx, batch in enumerate(batches, 1):
+    def _call_scoring_batch(batch):
+        """对一批候选调 LLM 评分。返回 (batch_out, fail_raw, truncated)。
+        batch_out 空=失败（无响应或 JSON 解析失败）；fail_raw 为失败时的原文片段。"""
         user = prompts.SCORING_USER_TEMPLATE.format(
             chain_name=chain_data.get("chain_name", ""),
             bottleneck_summary=bottleneck_summary,
@@ -619,23 +555,12 @@ def score_candidates(chain_data: dict, bottleneck_data: dict,
         )
         meta = _llm_call_meta(prompts.SCORING_SYSTEM, user)
         text = meta.get("text") or ""
-        stop = meta.get("stop_reason")
+        truncated = meta.get("stop_reason") == "max_tokens"
         if not text:
-            print(f"[us-deep-analyze] [warn] 批 {idx}/{len(batches)} LLM 无响应，"
-                  f"跳过 {len(batch)} 只候选", file=sys.stderr)
-            out_cands.extend([{**c, "stock_code": c["code"]} for c in batch])
-            continue
-        if stop == "max_tokens":
-            any_batch_truncated = True
-            print(f"[us-deep-analyze] [warn] 批 {idx}/{len(batches)} 响应被 max_tokens 截断，"
-                  f"尝试解析已返回部分", file=sys.stderr)
+            return [], "", False
         data = _json_from_llm(text)
         if not data:
-            print(f"[us-deep-analyze] [warn] 批 {idx}/{len(batches)} JSON 解析失败，"
-                  f"raw_llm[:300]={text[:300]!r}", file=sys.stderr)
-            raw_llm_snippets.append(text[:500])
-            out_cands.extend([{**c, "stock_code": c["code"]} for c in batch])
-            continue
+            return [], text[:500], truncated
         # 规整成 list[dict]
         if isinstance(data, list):
             batch_out = data
@@ -645,9 +570,36 @@ def score_candidates(chain_data: dict, bottleneck_data: dict,
                 batch_out = [data]
         else:
             batch_out = []
-        print(f"[us-deep-analyze] 批 {idx}/{len(batches)} 解析出 {len(batch_out)} 只",
+        return batch_out, "", truncated
+
+    for idx, batch in enumerate(batches, 1):
+        batch_out, fail_raw, truncated = _call_scoring_batch(batch)
+        if truncated:
+            any_batch_truncated = True
+        if batch_out:
+            print(f"[us-deep-analyze] 批 {idx}/{len(batches)} 解析出 {len(batch_out)} 只",
+                  file=sys.stderr)
+            out_cands.extend(batch_out)
+            continue
+        # 整批失败 → 逐只重试（小批次更易成功，规避 max_tokens 截断 / 单只畸形输出）
+        reason = "无响应" if not fail_raw else "JSON解析失败"
+        print(f"[us-deep-analyze] [warn] 批 {idx}/{len(batches)} {reason}，逐只重试",
               file=sys.stderr)
-        out_cands.extend(batch_out)
+        if fail_raw:
+            raw_llm_snippets.append(fail_raw)
+        for c in batch:
+            single_out, fr2, tr2 = _call_scoring_batch([c])
+            if tr2:
+                any_batch_truncated = True
+            if single_out:
+                out_cands.extend(single_out)
+                print(f"[us-deep-analyze]   重试 {c.get('code')} 成功", file=sys.stderr)
+            else:
+                # 兜底：保留候选，scores 留空（下游渲染为 '-'）
+                out_cands.append({**c, "stock_code": c["code"]})
+                if fr2:
+                    raw_llm_snippets.append(fr2)
+                print(f"[us-deep-analyze]   重试 {c.get('code')} 仍失败，留空", file=sys.stderr)
 
     data = {"candidates": out_cands}
     if raw_llm_snippets:

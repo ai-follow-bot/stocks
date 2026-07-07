@@ -40,7 +40,7 @@ class ZhipuSearch:
         # 智谱支持的搜索引擎：search_std / search_pro / search_pro_sogou（搜狗增强版）
         valid_engines = ("search_std", "search_pro", "search_pro_sogou")
         if self.engine not in valid_engines:
-            print(f"[zhipu] 未知 engine {self.engine!r}，回退 search_pro")
+            print(f"[zhipu] 未知 engine {self.engine!r}，回退 search_pro", file=sys.stderr)
             self.engine = "search_pro"
         self._default_key = config._DEFAULT_ZHIPU_API_KEY
         self.client = ZhipuAI(api_key=self.api_key)
@@ -79,10 +79,10 @@ class ZhipuSearch:
                 try:
                     resp = self._call_search(query, max_results)
                 except Exception as e2:
-                    print(f"[zhipu] 默认 key 也失败 ({query}): {e2}")
+                    print(f"[zhipu] 默认 key 也失败 ({query}): {e2}", file=sys.stderr)
                     return None
             else:
-                print(f"[zhipu] 搜索失败 ({query}): {e}")
+                print(f"[zhipu] 搜索失败 ({query}): {e}", file=sys.stderr)
                 return None
 
         raw_items = []
@@ -130,7 +130,7 @@ class ZhipuSearch:
         search_query = query or DEFAULT_QUERIES.get(
             sector, f"{sector} 行业 {datetime.now().year}"
         )
-        print(f"🔍 [zhipu] 搜索 [{sector}]: {search_query}")
+        print(f"🔍 [zhipu] 搜索 [{sector}]: {search_query}", file=sys.stderr)
 
         r = self.search_with_ai_summary(search_query, max_results=max_results)
         if r is None:
