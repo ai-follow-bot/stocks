@@ -148,8 +148,9 @@ def _candidates_from_discovery(sector: str, days: int = 14) -> List[dict]:
             seen[c["code"]] = c
 
     # 召回档案里该板块历史好标的（上次评分不错、本次搜索没挖到的）
+    # 用 canon（与 _upsert_archive 的 sec_key 一致），否则 to_under(sector) 与档案写的 canonical key 对不上
     n_arc = 0
-    for c in _recall_archive_candidates(sector):
+    for c in _recall_archive_candidates(canon):
         if c["code"] not in seen:
             seen[c["code"]] = c
             n_arc += 1

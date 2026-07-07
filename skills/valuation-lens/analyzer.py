@@ -119,6 +119,7 @@ def _run_chain_or_codes(chain_name: str, candidates: List[dict], days: int,
         sda = scoring.get("supply_demand_analysis") or ""
         if not sda:
             sda = _synthesize_sector_summary(scoring.get("candidates") or [])
+            scoring["supply_demand_analysis"] = sda  # 兜底写回，让 report 供需概览段有内容
         _upsert_sector_archive(sector, sda)
 
     return {
