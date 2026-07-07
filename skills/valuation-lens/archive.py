@@ -79,11 +79,13 @@ def _recall_archive_candidates(sector: str) -> List[dict]:
 
 
 def _cailianshe_per_stock(stock_name: str, code: str, limit: int = 3,
-                          last_run: Optional[str] = None) -> List[dict]:
+                          last_run: Optional[str] = None, days: int = 14) -> List[dict]:
     """拉财联社近期新闻中提及该股的条目（实时 D/F 证据）。复用 HERMES_NEWS_JSON。
 
-    按股票名（≥3 字）或代码过滤，返回 [{title, text, publish_time, is_new}]。
+    按股票名（≥2 字）或代码过滤，返回 [{title, text, publish_time, is_new}]。
+    days 限制回看窗口（publish_time 早于 now-days 的跳过）。
     is_new = publish_time 晚于 last_run（上次跑的时间），用于增量标记。
+    阈值 2（非 3）：恢复 2 字名标的召回，误匹配由 limit + 后续评分兜底。
     """
     if not stock_name and not code:
         return []
@@ -92,18 +94,25 @@ def _cailianshe_per_stock(stock_name: str, code: str, limit: int = 3,
     except Exception:
         return []
     name = stock_name or ""
+    cutoff = datetime.now() - timedelta(days=days)
     out = []
     for n in news:
+        pt = n.get("publish_time", "") or ""
+        if pt:  # 早于回看窗口的跳过；parse 失败则保留（不误删）
+            try:
+                if datetime.fromisoformat(pt.replace("Z", "")) < cutoff:
+                    continue
+            except Exception:
+                pass
         title = str(n.get("title", ""))
         content = str(n.get("content", ""))[:600]
         text = title + " " + content
-        if name and len(name) >= 3 and name in text:
+        if name and len(name) >= 2 and name in text:
             pass
         elif code and code in text:
             pass
         else:
             continue
-        pt = n.get("publish_time", "") or ""
         is_new = bool(last_run and pt and pt > last_run)
         out.append({"title": title, "text": _snippet(content) or content[:200],
                     "publish_time": pt, "is_new": is_new})

@@ -8,7 +8,7 @@
 import json
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
 from chain_agent import config
@@ -69,7 +69,35 @@ def _load_ecosystem() -> dict:
         return {}
 
 
-def _candidates_from_discovery(sector: str) -> List[dict]:
+def _canonical_sector_key(sector: str) -> str:
+    """归一化到 sector_ecosystem.json 的 canonical 英文 key。
+    优先级：英文 key 精确匹配 → 中文名 name 反查(优先英文 key) → 中文 key 兜底 → to_under 回退。
+    中文名 name 反查优先返回英文 key，避免 eco 里中英文双 key（如 optical_module 与 '光模块'）
+    导致 stock/chain 模式写出不同档案 key。"""
+    eco = _load_ecosystem()
+    # 1. 英文 key 精确匹配（含 to_under 归一化）
+    if sector in eco and sector.isascii():
+        return sector
+    tu = config.to_under(sector)
+    if tu in eco and tu.isascii():
+        return tu
+    # 2. 中文名 name 反查 → 优先英文 key
+    name_matches = [k for k, v in eco.items()
+                    if k != "metadata" and isinstance(v, dict) and v.get("name") == sector]
+    if name_matches:
+        ascii_keys = [k for k in name_matches if k.isascii()]
+        if ascii_keys:
+            return ascii_keys[0]
+        return name_matches[0]
+    # 3. 中文 key 兜底
+    if sector in eco:
+        return sector
+    if tu in eco:
+        return tu
+    return tu
+
+
+def _candidates_from_discovery(sector: str, days: int = 14) -> List[dict]:
     """自动发现候选：板块级搜索 + StockDetector 识别 A 股标的。
 
     不读 sector_overflow_config.json（无手填候选/角色/forward_hint）。
@@ -78,7 +106,8 @@ def _candidates_from_discovery(sector: str) -> List[dict]:
     from chain_agent.discovery.stock_detector import StockDetector
 
     eco = _load_ecosystem()
-    sec_cfg = eco.get(sector) or eco.get(config.to_under(sector)) or {}
+    canon = _canonical_sector_key(sector)  # 归一化到 ecosystem canonical key
+    sec_cfg = eco.get(canon) or {}
     sec_name = sec_cfg.get("name") or sector  # 中文名用于搜索
     kps = sec_cfg.get("key_products") or []
     kw_tail = " ".join(kps[:3])  # 环节产品词拼进 query 提升召回
@@ -111,7 +140,7 @@ def _candidates_from_discovery(sector: str) -> List[dict]:
                               "source": "discovered", "segment_hint": sec_name}
 
     # 合并财联社热度发现（板块相关新闻里高频出现的标的）
-    cls_hot = _candidates_from_cailianshe(sec_name, kps)
+    cls_hot = _candidates_from_cailianshe(sec_name, kps, days=days)
     for c in cls_hot:
         if c["code"] in seen:
             seen[c["code"]]["mention_count"] = c["mention_count"]  # Tavily 已发现，补热度
@@ -129,11 +158,11 @@ def _candidates_from_discovery(sector: str) -> List[dict]:
     return list(seen.values())
 
 
-def _candidates_from_cailianshe(sec_name: str, kps: list) -> List[dict]:
+def _candidates_from_cailianshe(sec_name: str, kps: list, days: int = 14) -> List[dict]:
     """从财联社近期新闻发现板块热门标的（hermes latest_news.json + StockDetector）。
 
     复用 chain_agent 已接的财联社数据源（hermes cron 维护）。按板块关键词过滤新闻后，
-    统计每只股票在相关新闻中的出现次数作为热度。
+    统计每只股票在相关新闻中的出现次数作为热度。days 限制新闻回看窗口（publish_time）。
     返回 [{code, name, source='cailianshe_hot', segment_hint, mention_count}]，按热度降序。
     """
     from chain_agent.discovery.stock_detector import StockDetector
@@ -147,11 +176,19 @@ def _candidates_from_cailianshe(sec_name: str, kps: list) -> List[dict]:
     if not news:
         return []
 
+    cutoff = datetime.now() - timedelta(days=days)
     kws = [sec_name] + [k for k in (kps or []) if k]
     detector = StockDetector()
     mention: Counter = Counter()
     names: Dict[str, str] = {}
     for n in news:
+        pt = n.get("publish_time", "") or ""
+        if pt:  # 早于回看窗口的跳过；parse 失败则保留（不误删）
+            try:
+                if datetime.fromisoformat(pt.replace("Z", "")) < cutoff:
+                    continue
+            except Exception:
+                pass
         text = " ".join([str(n.get("title", "")),
                          str(n.get("content", ""))[:800],
                          str(n.get("brief", ""))[:400]])
@@ -175,7 +212,7 @@ def _candidates_from_cailianshe(sec_name: str, kps: list) -> List[dict]:
 # snippet（里程碑关键词锚定，跳过导航 boilerplate）在共享 chain_agent/collectors/snippet.py
 def _valuation_search(provider, provider_name: Optional[str],
                       stock_name: str, code: str, year: int,
-                      archive_entry: Optional[dict]) -> dict:
+                      archive_entry: Optional[dict], days: int = 14) -> dict:
     """对单只股票搜 S/F/D evidence。
 
     - 24h 内跑过（档案 fresh）：复用档案 evidence_pool，跳过 Tavily
@@ -244,7 +281,7 @@ def _valuation_search(provider, provider_name: Optional[str],
 
     # 始终拉财联社 per-stock 实时新闻，追加为 D 证据（标"新增"= publish_time 晚于上次 last_run）
     last_run = (archive_entry or {}).get("last_run")
-    for item in _cailianshe_per_stock(stock_name, code, limit=3, last_run=last_run):
+    for item in _cailianshe_per_stock(stock_name, code, limit=3, last_run=last_run, days=days):
         d_idx = len([k for k in evidence if k.startswith("D")]) + 1
         eid = f"D{d_idx}"
         txt = item.get("text", "")
@@ -262,19 +299,21 @@ def _valuation_search(provider, provider_name: Optional[str],
             "prev_pool": (archive_entry or {}).get("evidence_pool") or {}}
 
 
-def search_all_candidates(candidates: List[dict]) -> Dict[str, dict]:
-    """并发对所有候选做 S/F/D 搜索（24h 内的复用档案跳过 Tavily，财联社始终实时）。"""
+def search_all_candidates(candidates: List[dict], days: int = 14,
+                          use_archive: bool = True) -> Dict[str, dict]:
+    """并发对所有候选做 S/F/D 搜索。
+    use_archive=False 时跳过档案复用（codes 显式探索模式，每次全新搜 Tavily）。"""
     provider, provider_name = _get_search_provider()
     year = datetime.now().year
-    arc = _load_archive()
+    arc = _load_archive() if use_archive else {}
     print(f"[valuation-lens] 并发搜索 {len(candidates)} 只候选 "
-          f"(provider={provider_name or 'none'})", file=sys.stderr)
+          f"(provider={provider_name or 'none'}, use_archive={use_archive})", file=sys.stderr)
 
     results: Dict[str, dict] = {}
     with ThreadPoolExecutor(max_workers=4) as ex:
         futs = {ex.submit(_valuation_search, provider, provider_name,
                           c["name"] or c["code"], c["code"], year,
-                          arc.get(c["code"])): c["code"]
+                          arc.get(c["code"]) if use_archive else None, days): c["code"]
                 for c in candidates if c.get("code")}
         for fut in as_completed(futs):
             code = futs[fut]

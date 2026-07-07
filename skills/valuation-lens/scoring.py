@@ -114,8 +114,8 @@ def _pe_note(triple_f: float, strong_f: float, weak_f: float, pe_v: str) -> str:
 def _compute_valuation_score(c: dict) -> tuple:
     """确定性计算 valuation_score + pe_treatment（连续模型，软阈值）。
 
-    valuation_score = 0.35*scarcity + 0.30*forward + 0.25*supply_demand + pe_adj
-    （base 0..90，pe_adj ∈ [-10,+10]，clamp 0..100）
+    valuation_score = (0.35*scarcity + 0.30*forward + 0.25*supply_demand)/0.9 + pe_adj
+    （权重等比归一到和=1.0，base 0..100，pe_adj ∈ [-10,+10]，clamp 0..100）
 
     PE 调整（连续，非离散跳变）：
     - strong/middle/weak 档权重由 max(s,f) 与 min(s,f,d) 在过渡带 [70,75]/[45,50] 软决定
@@ -146,10 +146,32 @@ def _compute_valuation_score(c: dict) -> tuple:
     triple_f = min(_ramp(s, 65, 70), _ramp(f, 65, 70), _ramp(d, 65, 70))
     adj = base_adj * (1 - triple_f)
 
-    base = 0.35 * s + 0.30 * f + 0.25 * d
+    base = (0.35 * s + 0.30 * f + 0.25 * d) / 0.9  # 权重等比归一到和=1.0（原 0.90），三高 base 可达 100
     score = max(0, min(100, round(base + adj)))
     note = _pe_note(triple_f, strong_f, weak_f, pe_v)
     return score, note, strong_f, weak_f
+
+
+def _reconcile_role(oc: dict) -> None:
+    """软校验 role：只降级与三维分明显矛盾的，其余信任 LLM。
+    expensive_but_scarce 与 scarce_bottleneck 语义重叠，信任 LLM 不强改。"""
+    s = _num((oc.get("scarcity") or {}).get("score"), 0)
+    f = _num((oc.get("forward") or {}).get("score"), 0)
+    d = _num((oc.get("supply_demand") or {}).get("score"), 0)
+    role = oc.get("role") or ""
+    fixed = role
+    if role == "scarce_bottleneck" and s < 70:
+        fixed = "balanced"
+    elif role == "forward_rerating" and f < 70:
+        fixed = "balanced"
+    elif role == "supply_demand_play" and d < 70:
+        fixed = "balanced"
+    elif role == "cheap_but_weak" and not (s < 50 and f < 50 and d < 50):
+        fixed = "balanced"
+    if fixed != role:
+        print(f"[valuation-lens] role 修正 {oc.get('stock_code') or oc.get('code')}: "
+              f"{role}→{fixed}", file=sys.stderr)
+        oc["role"] = fixed
 
 
 # ===== LLM 三维打分（分批）=====
@@ -177,7 +199,7 @@ def score_valuations(chain_name: str, candidates: List[dict],
 
     out: list = []
     raw_snippets: list = []
-    batch_preambles: dict = {}
+    batch_preambles: list = []  # 批级 preamble（板块概览）；逐只重试的单只叙述不收
 
     def _call_llm_batch(batch):
         """对一批候选调 LLM 打分。返回 (parsed_list, preamble, fail_raw)；parsed_list 空=失败。"""
@@ -226,8 +248,8 @@ def score_valuations(chain_name: str, candidates: List[dict],
 
     for idx, batch in enumerate(batches, 1):
         batch_out, preamble, fail_raw = _call_llm_batch(batch)
-        if preamble and len(preamble) > len(batch_preambles.get("text", "")):
-            batch_preambles["text"] = preamble
+        if preamble:
+            batch_preambles.append(preamble)
         if batch_out:
             print(f"[valuation-lens] 批 {idx}/{len(batches)} 解析出 {len(batch_out)} 只", file=sys.stderr)
             out.extend(batch_out)
@@ -239,8 +261,7 @@ def score_valuations(chain_name: str, candidates: List[dict],
             raw_snippets.append(fail_raw)
         for c in batch:
             single_out, sp2, fr2 = _call_llm_batch([c])
-            if sp2 and len(sp2) > len(batch_preambles.get("text", "")):
-                batch_preambles["text"] = sp2
+            # 逐只重试的 sp2 是单只叙述，不并入板块级 supply_demand_analysis
             if single_out:
                 out.extend(single_out)
                 print(f"[valuation-lens]   重试 {c.get('code')} 成功", file=sys.stderr)
@@ -290,22 +311,41 @@ def score_valuations(chain_name: str, candidates: List[dict],
         oc["pe_treatment"] = note
         oc["_strong"] = round(strong_f, 2)
         oc["_weak"] = round(weak_f, 2)
+        _reconcile_role(oc)
 
-    # 过滤明显噪声候选（三维均<40，多半是 StockDetector 从搜索文本误拾的不相关标的）
+    # 过滤明显噪声候选：仅过滤"有三维分但都<40"（StockDetector 误拾的不相关标的）；
+    # 无三维分（LLM 未返回）的保留，标 llm_failed_count，由 report 提示降级
+    def _has_dim(oc):
+        return any(isinstance((oc.get(k) or {}).get("score"), (int, float))
+                   for k in ("scarcity", "forward", "supply_demand"))
     def _max_dim(oc):
         vals = [(oc.get(k) or {}).get("score") for k in ("scarcity", "forward", "supply_demand")]
         vals = [v for v in vals if isinstance(v, (int, float))]
         return max(vals) if vals else 0
-    noise = [oc for oc in deduped if _max_dim(oc) < 40]
+    noise = [oc for oc in deduped if _has_dim(oc) and _max_dim(oc) < 40]
     if noise:
-        print(f"[valuation-lens] 过滤 {len(noise)} 只噪声候选（三维均<40）: "
+        print(f"[valuation-lens] 过滤 {len(noise)} 只噪声候选（有三维分但均<40）: "
               f"{[oc.get('stock_code') for oc in noise]}", file=sys.stderr)
-    deduped = [oc for oc in deduped if _max_dim(oc) >= 40]
+    deduped = [oc for oc in deduped if not (_has_dim(oc) and _max_dim(oc) < 40)]
+    llm_failed_count = sum(1 for oc in deduped if not _has_dim(oc))
 
     deduped.sort(key=lambda c: c.get("valuation_score", 0), reverse=True)
     data = {"candidates": deduped}
-    if batch_preambles.get("text"):
-        data["supply_demand_analysis"] = batch_preambles["text"]
+    if llm_failed_count:
+        data["llm_failed_count"] = llm_failed_count
+    # 多批 preamble 去重拼接（按首 80 字去重），截断 4000 与板块档案 summary 上限一致
+    seen_pre = set()
+    pre_parts = []
+    for p in batch_preambles:
+        if not p:
+            continue
+        k = p[:80]
+        if k in seen_pre:
+            continue
+        seen_pre.add(k)
+        pre_parts.append(p)
+    if pre_parts:
+        data["supply_demand_analysis"] = "\n\n".join(pre_parts)[:4000]
     if raw_snippets:
         data["raw_llm_partial"] = "\n---\n".join(raw_snippets)[:2000]
     return data

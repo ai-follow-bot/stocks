@@ -45,12 +45,12 @@ def render_chain_report(result: dict) -> str:
 
     lines = [
         f"# {chain_name} 估值镜头（稀缺 + 前瞻 + 供需）",
-        f"\n*生成时间: {result.get('run_time')} | 数据窗口: 近 {result.get('days')} 天*",
+        f"\n*生成时间: {result.get('run_time')} | 财联回看近 {result.get('days')} 天，Tavily 为当年全网搜索*",
         "\n> **方法论**：稀缺 / 前瞻 / 供需 是主驱动，当前 PE 仅作辅助确认。"
         "高 PE 不否决稀缺+前瞻强的标的（re-rating 合理）；低 PE 不救三信号弱的标的（价值陷阱嫌疑）。\n",
     ]
     if data_quality == "degraded":
-        lines.append("> ⚠️ **数据降级**：所有搜索源失败，本次评分基于 LLM 知识估算，置信度低。\n")
+        lines.append("> ⚠️ **数据降级**：搜索源失败或 LLM 未返回三维分，本次评分置信度低（详见数据缺口段）。\n")
 
     # 整体供需分析（LLM 前置文本）
     sda = scoring.get("supply_demand_analysis", "")
@@ -116,13 +116,13 @@ def render_chain_report(result: dict) -> str:
     lines.append(f"\n## {sec}. 方法论说明：PE 的角色\n")
     lines.append(
         "本报告对 PE 的处理遵循方向约束（在打分阶段确定性执行，非 LLM 主观）：\n"
-        "- **PE 方向（low/neutral/high）由代码基于当批候选 PE 分布确定性计算**（非 LLM 主观，避免 run-to-run 摆动）。\n"
+        "- **PE 方向（low/neutral/high）由代码基于当批候选 PE 分布确定性计算**（非 LLM 主观，避免 run-to-run 摆动；verdict 相对当批候选集，同票在不同批次里可能 low/neutral/high 不同）。\n"
         "- **三信号均强（高稀缺+高需求+高增长，「三高」标的）** 时，PE **完全不参与调整**——估值由三信号决定。\n"
         "- **稀缺或前瞻强** 时，PE 偏高 **不扣分**——re-rating 的合理代价；PE 偏低额外加分（锦上添花）。\n"
         "- **三信号均弱** 时，PE 偏低 **不加分**——价值陷阱嫌疑；PE 偏高反而扣分。\n"
         "- 其余情形：PE 偏低小加分，偏高小扣分。\n"
         "- 档位之间用**软阈值**过渡（65-70 三高、70-75 strong、45-50 weak），避免分数擦边翻转。\n\n"
-        "估值分 = 0.35×稀缺 + 0.30×前瞻 + 0.25×供需 + PE方向调整（base 0-90，PE调整 ±10；三高标的调整=0）。\n"
+        "估值分 = (0.35×稀缺 + 0.30×前瞻 + 0.25×供需)/0.9 + PE方向调整（权重归一到 base 0-100，PE调整 ±10；三高标的调整=0）。\n"
         "即：低 PE 只有在稀缺/前瞻/供需至少有一项站得住时才构成加分；"
         "高 PE 在稀缺+前瞻强时不会被否决；三高标的 PE 完全不参与。"
     )
@@ -132,7 +132,15 @@ def render_chain_report(result: dict) -> str:
     lines.append(f"\n## {sec}. 数据缺口\n")
     gaps = []
     if data_quality == "degraded":
-        gaps.append("- ⚠️ 所有搜索源（Tavily+智谱）失败，三维评分基于 LLM 知识估算")
+        zero_ev_all = bool(search_stats) and all(
+            (d or {}).get("evidence_count", 0) == 0 for d in search_stats.values())
+        llm_failed = scoring.get("llm_failed_count") or 0
+        if zero_ev_all:
+            gaps.append("- ⚠️ 所有搜索源（Tavily+智谱）失败，评分基于 LLM 知识估算")
+        if llm_failed:
+            gaps.append(f"- ⚠️ {llm_failed}/{len(candidates)} 只候选 LLM 未返回三维分数（降级，置信度低）")
+        if not zero_ev_all and not llm_failed:
+            gaps.append("- ⚠️ 数据降级（具体原因未知）")
     zero_ev = [code for code, d in search_stats.items()
                if (d or {}).get("evidence_count", 0) == 0]
     if zero_ev:
@@ -141,9 +149,11 @@ def render_chain_report(result: dict) -> str:
         pe_null = sum(1 for c in candidates if c.get("pe") is None)
         if pe_null:
             gaps.append(f"- {pe_null}/{len(candidates)} 只候选 PE 缺失（PE 方向调整退化为中性/小幅）")
-        no_score = [c for c in candidates if not (c.get("scarcity") or {}).get("score")]
+        no_score = [c for c in candidates
+                    if not all((c.get(k) or {}).get("score") is not None
+                               for k in ("scarcity", "forward", "supply_demand"))]
         if no_score:
-            gaps.append(f"- {len(no_score)}/{len(candidates)} 只候选 LLM 未返回三维分数（详情显示'?'）")
+            gaps.append(f"- {len(no_score)}/{len(candidates)} 只候选 LLM 未返回完整三维分数（详情显示'?'）")
     if not gaps:
         gaps.append("- 暂无明显缺口")
     lines.extend(gaps)
@@ -169,7 +179,7 @@ def render_stock_verdict(result: dict) -> str:
         "\n> **方法论**：稀缺 / 前瞻 / 供需 是主驱动，当前 PE 仅作辅助确认。\n",
     ]
     if data_quality == "degraded":
-        lines.append("> ⚠️ **数据降级**：搜索源失败，本次判断基于 LLM 知识估算，置信度低。\n")
+        lines.append("> ⚠️ **数据降级**：搜索源失败或 LLM 未返回三维分，本次判断置信度低。\n")
 
     lines.append("## 公司定位\n")
     lines.append(f"- 主营业务: {info.get('business','-')}")

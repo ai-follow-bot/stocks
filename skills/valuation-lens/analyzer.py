@@ -36,7 +36,9 @@ from .archive import (
     _upsert_sector_archive,
 )
 from .search import (
+    _canonical_sector_key,
     _candidates_from_discovery,
+    _load_ecosystem,
     _load_stock_list,
     _name_of,
     _resolve_codes,
@@ -103,12 +105,15 @@ def _run_chain_or_codes(chain_name: str, candidates: List[dict], days: int,
         src_counts[c.get("source", "?")] = src_counts.get(c.get("source", "?"), 0) + 1
     print(f"[valuation-lens] 候选截断: {len(candidates)} 只 {src_counts}", file=sys.stderr)
 
-    evidence_map = search_all_candidates(candidates)
+    # codes 模式（sector=None）不读档案（显式探索）；chain 模式读档案复用
+    evidence_map = search_all_candidates(candidates, days=days,
+                                         use_archive=sector is not None)
     all_failed = all(not (v.get("evidence") or {}) for v in evidence_map.values())
-    data_quality = "degraded" if all_failed else "ok"
 
     sector_prior = _get_sector_prior(sector) if sector else None
     scoring = score_valuations(chain_name, candidates, evidence_map, sector_prior=sector_prior)
+    llm_failed = scoring.get("llm_failed_count") or 0
+    data_quality = "degraded" if (all_failed or llm_failed) else "ok"
     if sector:
         _upsert_archive(sector, (scoring.get("candidates") or []), evidence_map)
         sda = scoring.get("supply_demand_analysis") or ""
@@ -133,11 +138,12 @@ def _run_chain_or_codes(chain_name: str, candidates: List[dict], days: int,
 
 
 def analyze_chain(chain: str, days: int = 14, top_n: int = 8) -> dict:
-    candidates = _candidates_from_discovery(chain)
+    candidates = _candidates_from_discovery(chain, days=days)
     if not candidates:
         return {"error": f"板块 {chain} 自动发现候选失败（搜索无果或板块名无法识别）", "chain": chain}
     chain_name = candidates[0].get("segment_hint") or chain
-    return _run_chain_or_codes(chain_name, candidates, days, top_n, sector=chain)
+    return _run_chain_or_codes(chain_name, candidates, days, top_n,
+                               sector=_canonical_sector_key(chain))
 
 
 def analyze_codes(codes: List[str], days: int = 14, top_n: int = 8) -> dict:
@@ -174,10 +180,14 @@ def analyze_stock(stock_input: str, days: int = 14) -> dict:
 
     print(f"[valuation-lens] 定位: {stock_name}（{stock_code}）", file=sys.stderr)
 
-    # 2. LLM 识别主营 + 产业链 + 环节
+    # 2. LLM 识别主营 + 产业链 + 环节（给 ecosystem 板块列表，让 LLM 返回标准板块名以便归一化到 canonical key）
+    sector_names = [v.get("name") for k, v in _load_ecosystem().items()
+                    if k != "metadata" and isinstance(v, dict) and v.get("name")]
     identify = f"""请用一行 JSON 回答（不要代码块、不要解释）：
-公司「{stock_name}（{stock_code}）」的主营业务、所属产业链（给中文链名）、所处具体环节。
-格式：{{"business":"...","chain_name":"...","segment":"..."}}"""
+公司「{stock_name}（{stock_code}）」的主营业务、所处具体环节，以及所属产业链。
+所属产业链从以下板块中选**最匹配的一个**；仅当某板块与公司主营高度匹配时才选它，**若以下板块均不贴切，chain_name 给空字符串""（不要勉强选择）**。
+可选板块: {"、".join(sector_names)}
+格式：{{"business":"...","chain_name":"<匹配的板块名或空字符串>","segment":"..."}}"""
     text = _llm_call("你是一位 A 股产业研究员，回答要简短准确。", identify)
     company_info = json_from_llm(text) if text else {}
     if not company_info:
@@ -188,12 +198,14 @@ def analyze_stock(stock_input: str, days: int = 14) -> dict:
     candidates = [{"code": stock_code, "name": stock_name, "source": "explicit",
                    "segment_hint": company_info.get("segment", "")}]
     _enrich_quotes(candidates)
-    evidence_map = search_all_candidates(candidates)
-    sector_prior = _get_sector_prior(chain_name) if chain_name else None
+    evidence_map = search_all_candidates(candidates, days=days, use_archive=True)
+    canon = _canonical_sector_key(chain_name) if chain_name else ""
+    sector_prior = _get_sector_prior(canon) if canon else None
     scoring = score_valuations(chain_name, candidates, evidence_map, sector_prior=sector_prior)
     single = (scoring.get("candidates") or [{}])[0]
-    if chain_name:
-        _upsert_archive(chain_name, scoring.get("candidates") or [], evidence_map)
+    # 始终写 per-stock 档案：canon 匹配 ecosystem 用标准 key，否则标 "unclassified"
+    # （ecosystem 外的股仍积累 evidence/prev_score 享 24h 复用 + 走势；unclassified 不在 ecosystem，不进板块召回）
+    _upsert_archive(canon or "unclassified", scoring.get("candidates") or [], evidence_map)
 
     # 4. LLM 估值判断（叙述）
     q = candidates[0]
@@ -217,6 +229,7 @@ def analyze_stock(stock_input: str, days: int = 14) -> dict:
     )
     verdict_md = _llm_call(prompts.STOCK_VERDICT_SYSTEM, user) or "(LLM 不可用，无法生成判断)"
 
+    llm_failed = scoring.get("llm_failed_count") or 0
     all_failed = not (evidence_map.get(stock_code, {}) or {}).get("evidence")
     return {
         "mode": "stock",
@@ -225,6 +238,6 @@ def analyze_stock(stock_input: str, days: int = 14) -> dict:
         "company_info": company_info,
         "scoring": single,
         "verdict_md": verdict_md,
-        "data_quality": "degraded" if all_failed else "ok",
+        "data_quality": "degraded" if (all_failed or llm_failed) else "ok",
         "run_time": datetime.now().isoformat(),
     }
