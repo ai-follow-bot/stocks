@@ -32,14 +32,22 @@ from .llm.prompts import SYNTHESIS_SYSTEM, SYNTHESIS_USER_TEMPLATE
 
 
 def _get_sector_leaders(sector: str):
-    """从 overflow_config 取该板块龙头股代码列表（供 akshare 新闻层用）"""
+    """从 overflow_config + sector_keywords.core_companies 取该板块龙头股代码列表（供 akshare 新闻层用）"""
     import json as _json
-    if not config.OVERFLOW_CONFIG_JSON.exists():
-        return None
-    with open(config.OVERFLOW_CONFIG_JSON, "r", encoding="utf-8") as f:
-        all_cfg = _json.load(f)
-    sec_cfg = all_cfg.get(config.to_hyphen(sector), {})
-    codes = [s["code"] for s in sec_cfg.get("leaders", []) if s.get("code")]
+    codes: list = []
+    if config.OVERFLOW_CONFIG_JSON.exists():
+        with open(config.OVERFLOW_CONFIG_JSON, "r", encoding="utf-8") as f:
+            all_cfg = _json.load(f)
+        sec_cfg = all_cfg.get(config.to_hyphen(sector), {}) or all_cfg.get(sector, {})
+        codes = [s["code"] for s in sec_cfg.get("leaders", []) if s.get("code")]
+    # 合并板块核心公司类目（sector_keywords.json core_companies，支持动态补充）
+    try:
+        from .discovery.stock_detector import load_core_companies
+        for c in load_core_companies(sector):
+            if c.get("code") and c["code"] not in codes:
+                codes.append(c["code"])
+    except Exception:
+        pass
     return codes or None
 
 

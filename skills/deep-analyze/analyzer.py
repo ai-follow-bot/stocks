@@ -189,13 +189,14 @@ def _load_sector_keywords_brief(chain: str) -> str:
     if enabled in ("0", "false", "off", "no", ""):
         return "(未启用)"
     try:
-        from chain_agent.discovery.stock_detector import SECTOR_KEYWORDS
+        from chain_agent.discovery.stock_detector import SECTOR_KEYWORDS, purify_keywords
         under = config.to_under(chain)
         kws = SECTOR_KEYWORDS.get(under) or SECTOR_KEYWORDS.get(chain) or []
         if not kws:
             return "(无)"
-        # 取前 8 个，避免 prompt 膨胀；股票名/英文名优先过滤掉（保留行业术语）
-        brief = [k for k in kws if not k.startswith("sk-")][:8]
+        # 严格校验：剥离公司名（purify_keywords 交叉比对 A 股名），只留产业/产品术语；
+        # 过滤 API key 误混（sk- 前缀）；取前 8 个避免 prompt 膨胀
+        brief = purify_keywords([k for k in kws if not k.startswith("sk-")])[:8]
         return ", ".join(brief) if brief else "(无)"
     except Exception as e:
         print(f"[deep-analyze] 加载板块关键词失败: {e}", file=sys.stderr)

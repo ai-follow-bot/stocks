@@ -132,6 +132,15 @@ def _candidates_from_discovery(sector: str, days: int = 14) -> List[dict]:
     ]
     detector = StockDetector()
     seen: Dict[str, dict] = {}
+    # 板块核心公司（类目）作种子候选，优先纳入（支持动态补充，方便分析时锚定龙头）
+    from chain_agent.discovery.stock_detector import load_core_companies
+    n_core = 0
+    for c in load_core_companies(sector):
+        code = c.get("code")
+        if code and code not in seen:
+            seen[code] = {"code": code, "name": c.get("name", ""),
+                          "source": "core_company", "segment_hint": c.get("segment", "") or sec_name}
+            n_core += 1
     for q in queries:
         r = search_cache.get_cached(q)
         if not r and provider:
@@ -168,7 +177,7 @@ def _candidates_from_discovery(sector: str, days: int = 14) -> List[dict]:
             seen[c["code"]] = c
             n_arc += 1
     print(f"[valuation-lens] 自动发现 {len(seen)} 只候选（板块={sec_name}，"
-          f"财联社热门 {len(cls_hot)}，档案召回 {n_arc}）", file=sys.stderr)
+          f"核心公司 {n_core}，财联社热门 {len(cls_hot)}，档案召回 {n_arc}）", file=sys.stderr)
     return list(seen.values())
 
 

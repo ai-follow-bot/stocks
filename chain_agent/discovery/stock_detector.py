@@ -64,6 +64,54 @@ def reload_keywords() -> Dict[str, List[str]]:
     SECTOR_KEYWORDS = _load_sector_keywords()
     return SECTOR_KEYWORDS
 
+
+# 股票名集合（懒加载缓存），供 purify_keywords 判定关键词是否为公司名
+_STOCK_NAMES_CACHE: set = None
+
+
+def _stock_names() -> set:
+    """加载全 A 股名集合（缓存）。"""
+    global _STOCK_NAMES_CACHE
+    if _STOCK_NAMES_CACHE is None:
+        try:
+            data = json.loads(config.STOCK_LIST_JSON.read_text(encoding="utf-8"))
+            stocks = data.get("stocks", data) if isinstance(data, dict) else data
+            _STOCK_NAMES_CACHE = {
+                v.get("name") for v in stocks.values() if isinstance(v, dict) and v.get("name")
+            }
+        except Exception:
+            _STOCK_NAMES_CACHE = set()
+    return _STOCK_NAMES_CACHE
+
+
+def purify_keywords(keywords: List[str]) -> List[str]:
+    """严格校验：剥离关键词里的公司名（与 A 股名完全匹配的），只留产业/产品术语。
+
+    AI 生成或注入关键词时调用，防止公司名混入 decompose prompt / 板块归属判定。
+    缩写公司名（如"晶瑞"）不完全匹配 stock_list 名（"晶瑞电材"），不会被误剥——
+    需先搜索确认全名再进 core_companies，不在 keywords 里。
+    """
+    names = _stock_names()
+    return [k for k in (keywords or []) if k not in names]
+
+
+def load_core_companies(sector: str) -> List[Dict]:
+    """从 sector_keywords.json 的 core_companies 加载板块核心公司（类目）。
+
+    返回 [{code, name, segment}]，供分析时作种子候选/锚定。支持动态补充（JSON 可后台改）。
+    sector 归一化匹配（中文/下划线/连字符）。
+    """
+    try:
+        data = json.loads(KEYWORDS_JSON.read_text(encoding="utf-8"))
+        core = data.get("core_companies", {}) if isinstance(data, dict) else {}
+        for k in (sector, config.to_under(sector), config.to_hyphen(sector)):
+            if k in core:
+                return core[k] or []
+        return []
+    except Exception:
+        return []
+
+
 # 各板块核心股票代码（用于确定板块归属优先级）
 CORE_SECTOR_STOCKS = {
     "optical_module": ["300308", "300502", "300394", "688498", "300570", "300548"],
