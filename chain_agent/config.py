@@ -93,6 +93,11 @@ LLM_MAX_TOKENS = int(os.environ.get("CHAIN_AGENT_LLM_MAX_TOKENS", "16384"))
 # 由各 skill 的路径墙钟上限（harness per-path timeout）兜底。
 LLM_REQUEST_TIMEOUT = float(os.environ.get("LLM_REQUEST_TIMEOUT", "600"))
 
+# kimi-k2.6 默认开启思考（reasoning_content），评分/JSON 场景下思考 token 吃光 max_tokens
+# 致答案截断 + 重试爆炸 + 超时。默认对 kimi 关闭思考（答案直出 content，快且完整）。
+# 设 KIMI_THINKING_ENABLED=1 可重新开启（如需深度推理场景）。
+KIMI_THINKING_ENABLED = os.environ.get("KIMI_THINKING_ENABLED", "").strip().lower() in ("1", "true", "yes", "on")
+
 # Anthropic（指向智谱 anthropic 兼容 endpoint，跑 GLM-5.2；
 # key 与 ZHIPU_API_KEY 同源，来自 ~/.claude/settings.json）
 # 注意：此处不使用环境变量 ANTHROPIC_BASE_URL，避免 Claude Code 等宿主环境

@@ -109,11 +109,16 @@ class OpenAICompatibleClient(LLMClient):
         return self._create(messages)
 
     def _create(self, messages: list) -> dict:
-        resp = self._client.chat.completions.create(
-            model=self._model,
-            max_tokens=config.LLM_MAX_TOKENS,
-            messages=messages,
-        )
+        # kimi-k2.6 默认开思考(reasoning_content)，思考 token 计入 max_tokens，评分/JSON 场景
+        # 下思考吃光 max_tokens 致答案截断+重试爆炸+超时。对 kimi 默认关思考（答案直出 content）。
+        kwargs: dict = {
+            "model": self._model,
+            "max_tokens": config.LLM_MAX_TOKENS,
+            "messages": messages,
+        }
+        if self._model.startswith("kimi") and not config.KIMI_THINKING_ENABLED:
+            kwargs["extra_body"] = {"thinking": {"type": "disabled"}}
+        resp = self._client.chat.completions.create(**kwargs)
         choice = resp.choices[0] if resp.choices else None
         text = choice.message.content if choice else ""
         finish = getattr(choice, "finish_reason", None) if choice else None
