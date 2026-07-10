@@ -397,7 +397,7 @@
   "datacenter": {
     "name": "数据中心/AIDC",
     "tier": 4,
-    "description": "智算中心，AI数据中心",
+    "description": "数据中心（AIDC/智算中心），算力基础设施，供配电/散热/机柜/PUE",
     "include_sectors": [
       "datacenter",
       "ai_server",
@@ -423,6 +423,16 @@
       "PUE",
       "算力密度",
       "单机柜功率"
+    ],
+    "key_products": [
+      "数据中心",
+      "AIDC",
+      "智算中心",
+      "PUE",
+      "机柜",
+      "供配电",
+      "暖通空调",
+      "柴发"
     ]
   },
   "power_supply": {
@@ -489,131 +499,206 @@
   "玻璃基板": {
     "name": "玻璃基板",
     "tier": 2,
-    "description": "用户自定义板块（待补充产业链数据）",
+    "description": "玻璃基板（Glass Substrate），先进封装中介层/芯板，2.5D/3D集成",
     "include_sectors": [
       "玻璃基板"
     ],
     "upstream": [],
     "downstream": [],
     "related": [],
-    "key_products": [],
+    "key_products": [
+      "玻璃基板",
+      "Glass Substrate",
+      "TGV",
+      "2.5D封装",
+      "芯板",
+      "玻璃中介层",
+      "异质集成"
+    ],
     "technologies": []
   },
   "TGV": {
     "name": "TGV",
     "tier": 2,
-    "description": "用户自定义板块（待补充产业链数据）",
+    "description": "玻璃通孔（TGV），玻璃基板/中介层垂直互连，先进封装",
     "include_sectors": [
       "TGV"
     ],
     "upstream": [],
     "downstream": [],
     "related": [],
-    "key_products": [],
+    "key_products": [
+      "TGV",
+      "玻璃通孔",
+      "玻璃中介层",
+      "玻璃基板",
+      "2.5D封装",
+      "三维互连"
+    ],
     "technologies": []
   },
   "CPO": {
     "name": "CPO",
     "tier": 2,
-    "description": "用户自定义板块（待补充产业链数据）",
+    "description": "共封装光学（CPO）光引擎与交换芯片共封装，AI算力高带宽低功耗",
     "include_sectors": [
       "CPO"
     ],
     "upstream": [],
     "downstream": [],
     "related": [],
-    "key_products": [],
+    "key_products": [
+      "共封装光学",
+      "CPO",
+      "光引擎",
+      "硅光芯片",
+      "光电共封装"
+    ],
     "technologies": []
   },
   "HBN": {
     "name": "HBN",
     "tier": 2,
-    "description": "用户自定义板块（待补充产业链数据）",
+    "description": "六方氮化硼（hBN）二维材料，散热/绝缘介质",
     "include_sectors": [
       "HBN"
     ],
     "upstream": [],
     "downstream": [],
     "related": [],
-    "key_products": [],
+    "key_products": [
+      "六方氮化硼",
+      "hBN",
+      "二维材料",
+      "散热膜",
+      "绝缘介质"
+    ],
     "technologies": []
   },
   "HBM": {
     "name": "HBM",
     "tier": 2,
-    "description": "用户自定义板块（待补充产业链数据）",
+    "description": "高带宽内存（HBM），3D堆叠DRAM+TSV，AI算力GPU显存",
     "include_sectors": [
       "HBM"
     ],
     "upstream": [],
     "downstream": [],
     "related": [],
-    "key_products": [],
+    "key_products": [
+      "HBM",
+      "高带宽内存",
+      "DRAM堆叠",
+      "TSV硅通孔",
+      "HBM3E",
+      "HBM4",
+      "GPU显存"
+    ],
     "technologies": []
   },
   "功率半导体": {
     "name": "功率半导体",
     "tier": 2,
-    "description": "用户自定义板块（待补充产业链数据）",
+    "description": "功率半导体（SiC/GaN/IGBT/MOSFET），电力电子与新能源车",
     "include_sectors": [
       "功率半导体"
     ],
     "upstream": [],
     "downstream": [],
     "related": [],
-    "key_products": [],
+    "key_products": [
+      "碳化硅",
+      "氮化镓",
+      "IGBT",
+      "MOSFET",
+      "功率模块",
+      "第三代半导体",
+      "车规功率"
+    ],
     "technologies": []
   },
   "机器人": {
     "name": "机器人",
     "tier": 2,
-    "description": "用户自定义板块（待补充产业链数据）",
+    "description": "机器人（工业/人形），核心零部件减速器/伺服/灵巧手/视觉",
     "include_sectors": [
       "机器人"
     ],
     "upstream": [],
     "downstream": [],
     "related": [],
-    "key_products": [],
+    "key_products": [
+      "减速器",
+      "伺服电机",
+      "灵巧手",
+      "机器视觉",
+      "人形机器人",
+      "谐波减速器",
+      "滚珠丝杠",
+      "力传感器"
+    ],
     "technologies": []
   },
   "物理AI": {
     "name": "物理AI",
     "tier": 2,
-    "description": "用户自定义板块（待补充产业链数据）",
+    "description": "物理AI（具身智能/自动驾驶），感知-决策-执行闭环",
     "include_sectors": [
       "物理AI"
     ],
     "upstream": [],
     "downstream": [],
     "related": [],
-    "key_products": [],
+    "key_products": [
+      "具身智能",
+      "人形机器人",
+      "自动驾驶",
+      "激光雷达",
+      "机器视觉",
+      "毫米波雷达",
+      "运动控制"
+    ],
     "technologies": []
   },
   "薄膜铌酸锂": {
     "name": "薄膜铌酸锂",
     "tier": 2,
-    "description": "用户自定义板块（待补充产业链数据）",
+    "description": "薄膜铌酸锂（TFLN），电光调制/光子集成，高速光通信",
     "include_sectors": [
       "薄膜铌酸锂"
     ],
     "upstream": [],
     "downstream": [],
     "related": [],
-    "key_products": [],
+    "key_products": [
+      "薄膜铌酸锂",
+      "TFLN",
+      "铌酸锂调制器",
+      "电光调制",
+      "光子集成电路",
+      "LNOI",
+      "光通信"
+    ],
     "technologies": []
   },
   "CPU": {
     "name": "CPU",
     "tier": 2,
-    "description": "用户自定义板块（待补充产业链数据）",
+    "description": "通用处理器（CPU），服务器/桌面/嵌入式，x86/ARM/RISC-V",
     "include_sectors": [
       "CPU"
     ],
     "upstream": [],
     "downstream": [],
     "related": [],
-    "key_products": [],
+    "key_products": [
+      "CPU",
+      "处理器",
+      "服务器CPU",
+      "桌面CPU",
+      "指令集",
+      "芯片设计"
+    ],
     "technologies": []
   },
   "半导体材料": {
@@ -642,14 +727,21 @@
   "NPO": {
     "name": "NPO",
     "tier": 2,
-    "description": "用户自定义板块（待补充产业链数据）",
+    "description": "近封装光学（NPO），光引擎近交换芯片封装，CPO过渡方案",
     "include_sectors": [
       "NPO"
     ],
     "upstream": [],
     "downstream": [],
     "related": [],
-    "key_products": [],
+    "key_products": [
+      "NPO",
+      "近封装光学",
+      "LPO",
+      "光引擎",
+      "可插拔光模块",
+      "光电互连"
+    ],
     "technologies": []
   }
 }

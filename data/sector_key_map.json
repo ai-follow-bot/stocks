@@ -1,14 +1,4 @@
 {
   "_comment": "板块 key 中英对照表：中文/大写别名 → canonical 英文 key。valuation-lens _canonical_sector_key 优先查此表（仅当映射结果在 ecosystem 时才采用）。双 key duplicate（光模块）已从 sector_ecosystem.json / sector_overflow_config.json 删除，此表保留映射供旧别名兜底，并作为未来中文 key 英文化的规范。",
-  "光模块": "optical_module",
-  "玻璃基板": "glass_substrate",
-  "TGV": "tgv",
-  "CPO": "cpo",
-  "HBN": "hbn",
-  "HBM": "hbm",
-  "功率半导体": "power_semiconductor",
-  "机器人": "robotics",
-  "物理AI": "physical_ai",
-  "薄膜铌酸锂": "lithium_niobate_thin_film",
-  "CPU": "cpu"
+  "光模块": "optical_module"
 }
