@@ -32,13 +32,17 @@ def main():
     parser.add_argument("--days", type=int, default=14, help="新闻回看窗口（默认 14 天）")
     parser.add_argument("--top-n", type=int, default=8, help="chain 模式候选上限（默认 8）")
     parser.add_argument("--out", type=str, help="输出文件路径")
+    parser.add_argument("--timeout", type=int, default=None,
+                        help="单路径墙钟上限(秒)，覆盖默认分级(chain600/deep1600/val1200)。"
+                             "deep 配 kimi 实测可达 800–2000s，必要时调大")
     parser.add_argument("--json", action="store_true", help="输出原始 JSON")
     args = parser.parse_args()
 
     if args.chain:
-        result = orchestrator.run_harness_chain(args.chain, days=args.days, top_n=args.top_n)
+        result = orchestrator.run_harness_chain(args.chain, days=args.days, top_n=args.top_n,
+                                                timeout=args.timeout)
     else:
-        result = orchestrator.run_harness_stock(args.stock, days=args.days)
+        result = orchestrator.run_harness_stock(args.stock, days=args.days, timeout=args.timeout)
 
     if "error" in result:
         print(f"❌ 失败: {result['error']}", file=sys.stderr)

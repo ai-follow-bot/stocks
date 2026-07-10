@@ -49,7 +49,7 @@ class AnthropicClient(LLMClient):
             from anthropic import Anthropic
         except ImportError as e:
             raise ImportError("anthropic SDK 未安装") from e
-        self._client = Anthropic(api_key=config.ANTHROPIC_API_KEY)
+        self._client = Anthropic(api_key=config.ANTHROPIC_API_KEY, timeout=config.LLM_REQUEST_TIMEOUT)
         self._model = config.ANTHROPIC_MODEL
 
     def synthesize(self, system: str, user: str) -> str:
@@ -89,6 +89,7 @@ class OpenAICompatibleClient(LLMClient):
         self._client = OpenAI(
             api_key=config.OPENAI_API_KEY,
             base_url=config.OPENAI_BASE_URL,
+            timeout=config.LLM_REQUEST_TIMEOUT,
         )
         self._model = config.OPENAI_MODEL
 

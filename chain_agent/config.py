@@ -82,10 +82,16 @@ IWENCAI_API_KEY = os.environ.get("IWENCAI_API_KEY", "")
 
 
 # ===== LLM 配置 =====
-# provider: auto | anthropic | kimi | none
-# auto 优先 Anthropic，其次 Kimi（OpenAI 兼容），均不可用降级模板
-LLM_PROVIDER = os.environ.get("CHAIN_AGENT_LLM_PROVIDER", "auto")
+# provider: auto | anthropic | openai | kimi | none
+# 默认 openai -> DeepSeek-v4-flash（OpenAI 兼容 endpoint）。
+# auto 优先 Anthropic（智谱 GLM），其次 OpenAI 兼容；anthropic 走智谱；kimi 显式走 Moonshot。
+LLM_PROVIDER = os.environ.get("CHAIN_AGENT_LLM_PROVIDER", "openai")
 LLM_MAX_TOKENS = int(os.environ.get("CHAIN_AGENT_LLM_MAX_TOKENS", "16384"))
+# 单次 LLM 调用超时（秒）：挂起的连接快失败，让上层降级/重试生效。
+# 注意：kimi 在 harness 多路径并发抢配额下，单次长输出（decompose/bottleneck/评分）
+# 实测可达 300-500s，故默认 600s（= SDK 默认）避免误杀合法慢调用；真正卡死的连接
+# 由各 skill 的路径墙钟上限（harness per-path timeout）兜底。
+LLM_REQUEST_TIMEOUT = float(os.environ.get("LLM_REQUEST_TIMEOUT", "600"))
 
 # Anthropic（指向智谱 anthropic 兼容 endpoint，跑 GLM-5.2；
 # key 与 ZHIPU_API_KEY 同源，来自 ~/.claude/settings.json）
@@ -101,13 +107,17 @@ ANTHROPIC_BASE_URL = os.environ.get(
 )
 ANTHROPIC_MODEL = os.environ.get("CHAIN_AGENT_ANTHROPIC_MODEL", "GLM-5.2")
 
-# OpenAI 兼容（Kimi/Moonshot/Deepseek/GLM 等）
-# key 来自 ~/.hermes/.env 的 KIMI_API_KEY
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "") or os.environ.get(
-    "KIMI_API_KEY", "sk-rGFGsSdhDEyBeJrB01Ep902sx3rcNNVuXc1VFinGieXzOmJj"
+# OpenAI 兼容（默认 DeepSeek-v4-flash；也覆盖 Kimi/Moonshot/GLM 等）
+# DeepSeek 是推理模型，思考走 reasoning_content，答案在 message.content（OpenAICompatibleClient 直取）。
+# 切回 Kimi：设 OPENAI_BASE_URL=https://api.moonshot.cn/v1 + KIMI_API_KEY + CHAIN_AGENT_OPENAI_MODEL=kimi-k2.6
+OPENAI_API_KEY = (
+    os.environ.get("OPENAI_API_KEY", "")
+    or os.environ.get("DEEPSEEK_API_KEY", "")
+    or os.environ.get("KIMI_API_KEY", "")
+    or "sk-4ce0c5b2a9b944b2966f570d7cf6af96"  # DeepSeek 默认 key
 )
-OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL", "https://api.moonshot.cn/v1")
-OPENAI_MODEL = os.environ.get("CHAIN_AGENT_OPENAI_MODEL", "kimi-k2.6")
+OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL", "https://api.deepseek.com")
+OPENAI_MODEL = os.environ.get("CHAIN_AGENT_OPENAI_MODEL", "deepseek-v4-flash")
 
 
 # ===== 评分阈值（借鉴 sector-overflow-effect）=====

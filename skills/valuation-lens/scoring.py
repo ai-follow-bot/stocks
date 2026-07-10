@@ -8,6 +8,7 @@ LLM 三维打分分批进行，整批失败时逐只重试。
 import json
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List, Optional
 
 from chain_agent.llm.client import get_llm_client
@@ -196,6 +197,12 @@ def score_valuations(chain_name: str, candidates: List[dict],
     batches = [candidates[i:i + BATCH] for i in range(0, len(candidates), BATCH)]
     print(f"[valuation-lens] 评分分批: {len(candidates)} 只 / {len(batches)} 批 "
           f"(batch_size={BATCH})", file=sys.stderr)
+    # 评分批并发度：val 同样 30 只/6-8 批串行 kimi 评分，harness 下常超 900-1200s 上限。
+    # 2 路并发把评分墙钟砍半；失败逐只重试在批内串行，故 kimi 并发上限 = SCORE_WORKERS。
+    SCORE_WORKERS = max(1, int(os.environ.get("VALUATION_LENS_SCORE_WORKERS", "2")))
+    # 整批失败时逐只重试的上限（每批）：候选已按优先级排序，仅重试前 N 只，其余直接留空兜底。
+    # 防爆：多批同败时无上限会 N 批 × BATCH 次重试吃满超时预算。
+    RETRY_CAP = max(0, int(os.environ.get("VALUATION_LENS_SCORE_RETRY_CAP", "3")))
 
     out: list = []
     raw_snippets: list = []
@@ -246,30 +253,67 @@ def score_valuations(chain_name: str, candidates: List[dict],
         )
         return batch_out, preamble or "", ""
 
-    for idx, batch in enumerate(batches, 1):
+    def _score_one_batch(idx: int, batch: list, total: int) -> dict:
+        """评分单批（含整批失败时的逐只重试）。返回聚合结果，供主线程按 idx 顺序合并。
+        批内逐只重试保持串行（kimi 并发上限 = SCORE_WORKERS）。
+        preamble 仅在批成功时收集（逐只重试的单只叙述不并入板块级 supply_demand_analysis）。"""
+        out: list = []
+        snippets: list = []
+        logs: list = []
+        batch_preamble = None  # 仅批成功时置值
+
         batch_out, preamble, fail_raw = _call_llm_batch(batch)
-        if preamble:
-            batch_preambles.append(preamble)
         if batch_out:
-            print(f"[valuation-lens] 批 {idx}/{len(batches)} 解析出 {len(batch_out)} 只", file=sys.stderr)
+            logs.append(f"批 {idx}/{total} 解析出 {len(batch_out)} 只")
             out.extend(batch_out)
-            continue
-        # 整批失败 → 逐只重试（小批次更易成功，规避 max_tokens 截断）
+            batch_preamble = preamble
+            return {"idx": idx, "out": out, "preamble": batch_preamble,
+                    "snippets": snippets, "logs": logs}
+        # 整批失败 -> 逐只重试（小批次更易成功，规避 max_tokens 截断）
+        # 加上限 RETRY_CAP：候选已按优先级排序，仅重试前 N 只，其余直接留空兜底，防重试爆炸
         reason = "无响应" if not fail_raw else "JSON解析失败"
-        print(f"[valuation-lens] [warn] 批 {idx}/{len(batches)} {reason}，逐只重试", file=sys.stderr)
+        logs.append(f"[warn] 批 {idx}/{total} {reason}，逐只重试（上限 {RETRY_CAP}/{len(batch)}）")
         if fail_raw:
-            raw_snippets.append(fail_raw)
-        for c in batch:
+            snippets.append(fail_raw)
+        for i, c in enumerate(batch):
+            if i >= RETRY_CAP:
+                out.append({**c, "stock_code": c["code"]})
+                logs.append(f"  {c.get('code')} 跳过重试（超上限），留空")
+                continue
             single_out, sp2, fr2 = _call_llm_batch([c])
             # 逐只重试的 sp2 是单只叙述，不并入板块级 supply_demand_analysis
             if single_out:
                 out.extend(single_out)
-                print(f"[valuation-lens]   重试 {c.get('code')} 成功", file=sys.stderr)
+                logs.append(f"  重试 {c.get('code')} 成功")
             else:
                 out.append({**c, "stock_code": c["code"]})
                 if fr2:
-                    raw_snippets.append(fr2)
-                print(f"[valuation-lens]   重试 {c.get('code')} 仍失败，留空", file=sys.stderr)
+                    snippets.append(fr2)
+                logs.append(f"  重试 {c.get('code')} 仍失败，留空")
+        return {"idx": idx, "out": out, "preamble": batch_preamble,
+                "snippets": snippets, "logs": logs}
+
+    total_batches = len(batches)
+    if SCORE_WORKERS == 1 or total_batches <= 1:
+        batch_results = [_score_one_batch(idx, b, total_batches)
+                         for idx, b in enumerate(batches, 1)]
+    else:
+        # 并发跑批；按 idx 顺序收集，合并时保确定性与原串行顺序一致
+        batch_results = [None] * total_batches
+        with ThreadPoolExecutor(max_workers=SCORE_WORKERS) as ex:
+            futs = {ex.submit(_score_one_batch, idx, b, total_batches): idx
+                    for idx, b in enumerate(batches, 1)}
+            for fut in as_completed(futs):
+                r = fut.result()
+                batch_results[r["idx"] - 1] = r
+
+    for r in batch_results:
+        for line in r["logs"]:
+            print(f"[valuation-lens] {line}", file=sys.stderr)
+        out.extend(r["out"])
+        if r["preamble"]:
+            batch_preambles.append(r["preamble"])
+        raw_snippets.extend(r["snippets"])
 
     # 合并输入字段（pe/market_cap/change_pct/source/segment_hint/code/name）
     input_by_code = {c["code"]: c for c in candidates}

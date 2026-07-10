@@ -642,6 +642,15 @@ def score_candidates(chain_data: dict, bottleneck_data: dict,
     SCORE_BATCH_SIZE = int(os.environ.get("DEEP_ANALYZE_SCORE_BATCH", "8"))
     if SCORE_BATCH_SIZE < 2:
         SCORE_BATCH_SIZE = 2
+    # 评分批并发度：kimi 单批 ~260s，4 批串行 ≈ 1040s（harness 600/1200s 上限必超）。
+    # 2 路并发把评分墙钟砍半 ≈ 520s，配合 1600s 上限让 deep 在 harness 内稳定完成。
+    # 失败逐只重试在批内串行，故实际 kimi 并发上限 = SCORE_WORKERS（默认 2）。
+    SCORE_WORKERS = int(os.environ.get("DEEP_ANALYZE_SCORE_WORKERS", "2"))
+    if SCORE_WORKERS < 1:
+        SCORE_WORKERS = 1
+    # 整批失败时逐只重试的上限（每批）：候选已按优先级排序，仅重试前 N 只，其余直接留空兜底。
+    # 防爆：kimi/DeepSeek 抖动致多批同败时，无上限会 N 批 × batch_size 次重试吃满超时预算。
+    RETRY_CAP = max(0, int(os.environ.get("DEEP_ANALYZE_SCORE_RETRY_CAP", "4")))
 
     batches = [candidates[i:i + SCORE_BATCH_SIZE]
                for i in range(0, len(candidates), SCORE_BATCH_SIZE)]
@@ -691,37 +700,77 @@ def score_candidates(chain_data: dict, bottleneck_data: dict,
             batch_out = []
         return batch_out, preamble or "", "", truncated
 
-    for idx, batch in enumerate(batches, 1):
-        batch_out, preamble, fail_raw, truncated = _call_scoring_batch(batch)
-        if truncated:
-            any_batch_truncated = True
-        if preamble and len(preamble) > len(batch_preambles.get("text", "")):
-            batch_preambles["text"] = preamble
+    def _score_one_batch(idx: int, batch: list, total: int) -> dict:
+        """评分单批（含整批失败时的逐只重试）。返回聚合结果 dict，供主线程按 idx 顺序合并。
+        批内逐只重试保持串行，避免叠加 kimi 并发（并发上限 = SCORE_WORKERS）。"""
+        out: list = []
+        snippets: list = []
+        logs: list = []
+        preamble = ""
+        truncated = False
+
+        def _track_pre(pre: str):
+            nonlocal preamble
+            if pre and len(pre) > len(preamble):
+                preamble = pre
+
+        batch_out, pre, fail_raw, trunc = _call_scoring_batch(batch)
+        truncated |= trunc
+        _track_pre(pre)
         if batch_out:
-            print(f"[deep-analyze] 批 {idx}/{len(batches)} 解析出 {len(batch_out)} 只",
-                  file=sys.stderr)
-            out_cands.extend(batch_out)
-            continue
-        # 整批失败 → 逐只重试（小批次更易成功，规避 max_tokens 截断 / 单只畸形输出）
+            logs.append(f"批 {idx}/{total} 解析出 {len(batch_out)} 只")
+            out.extend(batch_out)
+            return {"idx": idx, "out": out, "preamble": preamble, "truncated": truncated,
+                    "snippets": snippets, "logs": logs}
+        # 整批失败 -> 逐只重试（小批次更易成功，规避 max_tokens 截断 / 单只畸形输出）
+        # 加上限 RETRY_CAP：候选已按优先级排序，仅重试前 N 只，其余直接留空兜底，防重试爆炸
         reason = "无响应" if not fail_raw else "JSON解析失败"
-        print(f"[deep-analyze] [warn] 批 {idx}/{len(batches)} {reason}，逐只重试", file=sys.stderr)
+        logs.append(f"[warn] 批 {idx}/{total} {reason}，逐只重试（上限 {RETRY_CAP}/{len(batch)}）")
         if fail_raw:
-            raw_llm_snippets.append(fail_raw)
-        for c in batch:
+            snippets.append(fail_raw)
+        for i, c in enumerate(batch):
+            if i >= RETRY_CAP:
+                out.append({**c, "stock_code": c["code"]})
+                logs.append(f"  {c.get('code')} 跳过重试（超上限），留空")
+                continue
             single_out, sp2, fr2, tr2 = _call_scoring_batch([c])
-            if tr2:
-                any_batch_truncated = True
-            if sp2 and len(sp2) > len(batch_preambles.get("text", "")):
-                batch_preambles["text"] = sp2
+            truncated |= tr2
+            _track_pre(sp2)
             if single_out:
-                out_cands.extend(single_out)
-                print(f"[deep-analyze]   重试 {c.get('code')} 成功", file=sys.stderr)
+                out.extend(single_out)
+                logs.append(f"  重试 {c.get('code')} 成功")
             else:
                 # 兜底：保留候选，scores 留空（下游渲染为 '-'）
-                out_cands.append({**c, "stock_code": c["code"]})
+                out.append({**c, "stock_code": c["code"]})
                 if fr2:
-                    raw_llm_snippets.append(fr2)
-                print(f"[deep-analyze]   重试 {c.get('code')} 仍失败，留空", file=sys.stderr)
+                    snippets.append(fr2)
+                logs.append(f"  重试 {c.get('code')} 仍失败，留空")
+        return {"idx": idx, "out": out, "preamble": preamble, "truncated": truncated,
+                "snippets": snippets, "logs": logs}
+
+    total_batches = len(batches)
+    if SCORE_WORKERS == 1 or total_batches <= 1:
+        batch_results = [_score_one_batch(idx, b, total_batches)
+                         for idx, b in enumerate(batches, 1)]
+    else:
+        # 并发跑批；按 idx 顺序收集，合并时保确定性与原串行顺序一致
+        batch_results = [None] * total_batches
+        with ThreadPoolExecutor(max_workers=SCORE_WORKERS) as ex:
+            futs = {ex.submit(_score_one_batch, idx, b, total_batches): idx
+                    for idx, b in enumerate(batches, 1)}
+            for fut in as_completed(futs):
+                r = fut.result()
+                batch_results[r["idx"] - 1] = r
+
+    for r in batch_results:
+        for line in r["logs"]:
+            print(f"[deep-analyze] {line}", file=sys.stderr)
+        out_cands.extend(r["out"])
+        if r["preamble"] and len(r["preamble"]) > len(batch_preambles.get("text", "")):
+            batch_preambles["text"] = r["preamble"]
+        if r["truncated"]:
+            any_batch_truncated = True
+        raw_llm_snippets.extend(r["snippets"])
 
     print(f"[deep-analyze] 分批评分完成: LLM 输出 {len(out_cands)} 只候选", file=sys.stderr)
     data = {"candidates": out_cands}

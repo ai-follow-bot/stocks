@@ -39,7 +39,7 @@ There is **no test suite and no linter config** in this repo — don't invent `p
 
 ## Architecture: two pipeline stacks, each with a US mirror
 
-This is the part the README understates. There are **five runnable agent entry points**, not one, and the website picks among them:
+This is the part the README understates. There are **six runnable agent entry points**, not one, and the website picks among them:
 
 | Entry module | Market | Style | What it does |
 |---|---|---|---|
@@ -48,6 +48,7 @@ This is the part the README understates. There are **five runnable agent entry p
 | `skills.valuation-lens` (`__main__`→`analyzer`) | A-share | LLM-driven | 估值镜头：以「稀缺+前瞻+供需」三维度重估，PE 仅作方向约束（`_compute_valuation_score` 确定性执行：**PE verdict 基于当批 PE 分布算**（非 LLM）+ **软阈值连续模型**；三高标的 PE 不参与）。`--chain`（**自动发现候选**：板块搜索 + `StockDetector` + 财联社热度（`HERMES_NEWS_JSON`）+ **per-stock 知识档案**（`output/valuation_stock_archive.json`：evidence_pool/key_facts/score_history，val≥60 积累；**24h 内跳过 Tavily 复用档案+财联社 per-stock 实时**，prior 注入 LLM 增量更新），不读 `overflow_config`、无任何手填参数）/`--codes`/`--stock` 三入口；S/F/D evidence-id 强制引用；复用 `chain_agent/llm/parse.py`。**无 US 镜像**。 |
 | `us_chain_agent.agent` | US | Deterministic | Mirror of `chain_agent` over `data/us_*` files; collectors use Finnhub + Wikipedia instead of akshare/财联社 |
 | `skills.us-deep-analyze` | US | LLM-driven | Mirror of `skills.deep-analyze` |
+| `skills.ce-value` (`__main__`->`analyzer`) | A-share | LLM-driven | 431 中国特色价值投资：宏观->市场->行业->公司 层层收敛 + 三高(高增长/高利润/高围墙)筛选 + 卡脖子抓手。`run_macro_briefing`（财联社政策+Tavily 全球/流动性+akshare 宏观序列 CPI/社融/M2/PMI）-> `run_market_briefing`（指数+北向+融资融券+财联社情绪，指数 flaky 时降级）-> 选板块（`--chain` 用户指定 / 无则 `sector_picker` LLM 从 ecosystem 选 1-N 个）-> 公司层 **in-process 调 `skills.harness.orchestrator.run_harness_chain`**（三视角，不再包 subprocess）-> `financials.get_financials_batch`（akshare `stock_financial_analysis_indicator` 拉毛利率/净利率/ROE/增速）-> `three_high.score_batch`（ramp 软阈值，高围墙复用 val 稀缺+deep 国产替代，缺数据降级）-> 卡脖子来自 harness 透传的 `deep_bottlenecks`。`--max-sectors` 控自动选板块上限。**无 US 镜像**。 |
 
 **`chain_agent`/`us_chain_agent` is the shared core.** Both `skills/*-deep-analyze` import `chain_agent.config`, `chain_agent.collectors.*` (Tavily/Zhipu/akshare/cache), `chain_agent.discovery.stock_detector`, `chain_agent.scoring.quotes`, and `chain_agent.llm.client`. So changes to `chain_agent/` ripple into the deep-analyze skills — don't treat them as independent.
 
@@ -60,7 +61,7 @@ This is the part the README understates. There are **five runnable agent entry p
 
 The website at `/home/smallsite-vue` (separate repo, not under `/opt/stocks`) drives this repo via `backend/src/api/admin-stocks.ts`:
 - A SQLite task queue + `setInterval` worker (10s tick, concurrency 1, PID-liveness recovery) `spawn`s `STOCKS_VENV_PYTHON -m <module> <args>`.
-- `task_type` selects the module: `chain` (default) → `chain_agent.agent` / `us_chain_agent.agent`; `deep_chain` → `skills.deep-analyze` / `skills.us-deep-analyze` with `--chain`; `stock` → same skill with `--stock`; `valuation` → `skills.valuation-lens` with `--chain` (**A-share only — US+valuation is blocked at `POST /tasks`**). `market: 'us'` swaps in the US modules (except `valuation`, which has no US mirror).
+- `task_type` selects the module: `chain` (default) → `chain_agent.agent` / `us_chain_agent.agent`; `deep_chain` → `skills.deep-analyze` / `skills.us-deep-analyze` with `--chain`; `harness`/`harness_stock` → `skills.harness`; `ce_value` → `skills.ce-value`; `stock` → same skill with `--stock`; `valuation` → `skills.valuation-lens` with `--chain` (**A-share only — US+valuation/harness/ce_value blocked at `POST /tasks`**). `market: 'us'` swaps in the US modules (except `valuation`/`harness`/`ce_value`, which have no US mirror).
 - At spawn it injects env vars: `SERENITY_LENS`, `SUPPLY_DEMAND_LENS` (Serenity/供需 lenses), `DECOMPOSE_INJECT_KEYWORDS` (the `inject_keywords` task flag), and selects LLM model (`glm` default vs `kimi`).
 - The admin API also **reads and writes** `data/sector_ecosystem.json`, `data/sector_overflow_config.json` (and US variants) directly — so uncommitted edits to those JSON files (often seen in `git status`) may have come from the web UI, not a local editor. Invalidate-by-mtime caches in the TS layer mean the running Node process may need a reload to pick up JSON changes.
 
@@ -72,10 +73,10 @@ Trust `config.py`, not the README, for current defaults. Notable points:
 
 - **Sector naming convention**: `sector_ecosystem.json` keys use underscores (`optical_module`); `sector_overflow_config.json` keys use hyphens (`optical-module`). `config.to_hyphen()` / `to_under()` convert. Chain inputs may be Chinese or English keys.
 - **`QUOTE_PROVIDER`** default is `easyquotation` (README says akshare). `AkshareQuoteProvider` is the alternate. `get_quote_provider()` is the DI seam; scoring layers take a `quote_provider`/`quotes` arg, never a global.
-- **LLM env vars are namespaced**: `CHAIN_AGENT_LLM_PROVIDER` (default `auto`: Anthropic→Kimi→template fallback) and `CHAIN_AGENT_LLM_MAX_TOKENS` (default `16384`). The bare `LLM_PROVIDER`/`LLM_MAX_TOKENS` names in the README do **not** work.
+- **LLM env vars are namespaced**: `CHAIN_AGENT_LLM_PROVIDER` (default `openai` -> DeepSeek-v4-flash; `auto` = Anthropic→OpenAI(DeepSeek)→template fallback) and `CHAIN_AGENT_LLM_MAX_TOKENS` (default `16384`). The bare `LLM_PROVIDER`/`LLM_MAX_TOKENS` names in the README do **not** work.
 - **The "Anthropic" client actually points at Zhipu GLM.** `ANTHROPIC_BASE_URL` defaults to `https://open.bigmodel.cn/api/anthropic` and `ANTHROPIC_MODEL` to `GLM-5.2`, sharing the Zhipu key. `config.py` deliberately force-overrides `os.environ["ANTHROPIC_BASE_URL"]` on import so host environments (e.g. Claude Code) can't inject a competing endpoint and cause 401s. To use real Anthropic, set `CHAIN_AGENT_ANTHROPIC_BASE_URL` + `ANTHROPIC_API_KEY` + `CHAIN_AGENT_ANTHROPIC_MODEL`.
-- **OpenAI-compatible** default is Kimi: `OPENAI_BASE_URL=https://api.moonshot.cn/v1`, `OPENAI_MODEL=kimi-k2.6` (falls back to `KIMI_API_KEY`).
-- **API keys are baked in as defaults** (3× Tavily dev keys, Zhipu key, Kimi key) — this is the "self-contained, runs anywhere" design. Env vars (`TAVILY_API_KEYS` comma-separated, `ZHIPU_API_KEY`, `OPENAI_API_KEY`/`KIMI_API_KEY`, `FINNHUB_API_KEY`) override them. Edit `config.py` to rotate defaults.
+- **OpenAI-compatible** default is DeepSeek-v4-flash: `OPENAI_BASE_URL=https://api.deepseek.com`, `OPENAI_MODEL=deepseek-v4-flash`（推理模型，思考走 reasoning_content，答案在 message.content）。Kimi 仍可选（设 Moonshot base + KIMI_API_KEY + kimi-k2.6）。网站 task_type 默认 llm_model='deepseek'。
+- **API keys are baked in as defaults** (3× Tavily dev keys, Zhipu key, DeepSeek key, Kimi key) — this is the "self-contained, runs anywhere" design. Env vars (`TAVILY_API_KEYS` comma-separated, `ZHIPU_API_KEY`, `OPENAI_API_KEY`/`DEEPSEEK_API_KEY`/`KIMI_API_KEY`, `FINNHUB_API_KEY`) override them. Edit `config.py` to rotate defaults.
 - **Proxy handling differs by market.** `chain_agent/config.py` calls `clear_proxy_env()` on import (A-share akshare/东财 must go direct; respects `EM_MIN_INTERVAL`/`EM_TIMEOUT` for 东财 rate limiting). `us_chain_agent/config.py` snapshots proxy env *before* importing `chain_agent.config`, then restores it afterward — US sources (Finnhub/Wikipedia/Tavily) need the proxy. Keep this ordering intact if you touch either config.
 
 ### Search provider chain (shared by both stacks)
