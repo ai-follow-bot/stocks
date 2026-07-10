@@ -161,26 +161,46 @@ def _build_change_60d_map(enriched_extras: dict) -> dict:
         return {}
 
 
-def _render_fund_flow_text(enriched_extras: dict, name_map: dict = None,
-                           change_60d_map: dict = None) -> str:
-    """渲染近60日涨幅 + 融资融券余额变化。
+def _build_price_changes_map(enriched_extras: dict) -> dict:
+    """各股近 7/30 日涨幅（akshare stock_zh_a_hist 日K 算）。push2his 风控时全 {}（列显示 "-"）。
+    60日另有批量行情可靠来源，故此处只算 7/30 日。"""
+    if not enriched_extras:
+        return {}
+    try:
+        from .collectors import stock_data
+        return stock_data.price_changes_batch(list(enriched_extras.keys()))
+    except Exception as e:
+        print(f"[agent] 近7/30日涨幅拉取失败: {str(e)[:80]}", file=sys.stderr)
+        return {}
 
-    涨幅取自批量行情自带的「60日涨跌幅」（可靠，零额外调用，不依赖易风控的 push2his
-    单股历史端点）；融资融券来自 enrich。缺失写 "-"。
+
+def _render_fund_flow_text(enriched_extras: dict, name_map: dict = None,
+                           change_60d_map: dict = None,
+                           price_changes_map: dict = None) -> str:
+    """渲染 60/30/7 日涨幅 + 融资融券余额变化。
+
+    60日取自批量行情「60日涨跌幅」（可靠）；7/30 日取自 stock_zh_a_hist 日K 算
+    （push2his 易风控，缺失写 "-"）；融资融券来自 enrich。全缺的标的跳过。
     """
     name_map = name_map or {}
     change_60d_map = change_60d_map or {}
+    price_changes_map = price_changes_map or {}
     rows = []
     for code, ex in enriched_extras.items():
         chg60 = change_60d_map.get(code)
+        pc = price_changes_map.get(code) or {}
+        chg30 = pc.get(30)
+        chg7 = pc.get(7)
         mg = ex.get("margin") or {}
         chg = mg.get("margin_balance_change")  # None = 无融资融券数据
-        if chg60 is None and chg is None:
+        if chg60 is None and chg30 is None and chg7 is None and chg is None:
             continue
         rows.append({
             "code": code,
             "name": name_map.get(code, code),
             "change_60d": chg60,
+            "change_30d": chg30,
+            "change_7d": chg7,
             "margin_chg_pct": None if chg is None else chg * 100,
         })
     if not rows:
@@ -188,12 +208,14 @@ def _render_fund_flow_text(enriched_extras: dict, name_map: dict = None,
     # None 沉底，其余按涨幅降序（None 作 -inf，reverse 后自然沉底）
     rows.sort(key=lambda x: x["change_60d"] if x["change_60d"] is not None else float('-inf'),
               reverse=True)
-    lines = ["| 名称 | 近60日涨幅% | 融资余额变化% |",
-             "|------|------------|--------------|"]
+    lines = ["| 名称 | 60日涨幅% | 30日涨幅% | 7日涨幅% | 融资余额变化% |",
+             "|------|---------|---------|--------|--------------|"]
     for r in rows[:15]:
-        chg60_str = "-" if r["change_60d"] is None else f"{r['change_60d']:+.1f}"
+        c60 = "-" if r["change_60d"] is None else f"{r['change_60d']:+.1f}"
+        c30 = "-" if r["change_30d"] is None else f"{r['change_30d']:+.1f}"
+        c7 = "-" if r["change_7d"] is None else f"{r['change_7d']:+.1f}"
         chg_str = "-" if r["margin_chg_pct"] is None else f"{r['margin_chg_pct']:+.1f}"
-        lines.append(f"| {r['name']} | {chg60_str} | {chg_str} |")
+        lines.append(f"| {r['name']} | {c60} | {c30} | {c7} | {chg_str} |")
     return "\n".join(lines)
 
 
@@ -265,6 +287,7 @@ def llm_synthesize(result: dict, top_n: int = 15) -> str:
             enriched_extras,
             name_map={s["code"]: s.get("name", s["code"]) for s in result["scored"].get("scored", [])},
             change_60d_map=_build_change_60d_map(enriched_extras),
+            price_changes_map=_build_price_changes_map(enriched_extras),
         )[:3000],
         research_text=_render_research_text(enriched_extras)[:3000],
         top_n=top_n,
@@ -314,7 +337,8 @@ def _fallback_report(result: dict, top_n: int = 15) -> str:
         lines.append(_render_dragon_tiger_text(enriched_extras, name_map=name_map))
         lines.append("\n### 近60日涨幅 + 融资融券\n")
         lines.append(_render_fund_flow_text(enriched_extras, name_map=name_map,
-                                            change_60d_map=_build_change_60d_map(enriched_extras)))
+                                            change_60d_map=_build_change_60d_map(enriched_extras),
+                                            price_changes_map=_build_price_changes_map(enriched_extras)))
         lines.append("\n## 5. 研报评级\n")
         lines.append(_render_research_text(enriched_extras, name_map=name_map))
 

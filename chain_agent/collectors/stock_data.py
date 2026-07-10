@@ -415,6 +415,56 @@ def fund_flow_120d(code):
         return {}
 
 
+_price_changes_disabled = {"disabled": False}
+
+
+def price_changes(code, periods=(7, 30)):
+    """个股近 N 日涨幅（%）。用 akshare stock_zh_a_hist 拉日K（前复权），取最近 close 算涨幅。
+    返回 {7: x, 30: y}（%）；数据不足该周期返回 None；push2his 风控时禁用本轮返回 {}。
+
+    注：60日涨跌幅另有批量行情(stock_zh_a_spot_em f24)可靠来源，故此处只算 7/30 日。
+    """
+    if _price_changes_disabled["disabled"]:
+        return {}
+    try:
+        import akshare as ak
+        end = datetime.now().strftime("%Y%m%d")
+        start = (datetime.now() - timedelta(days=90)).strftime("%Y%m%d")  # 90 自然日覆盖 60 交易日
+        df = ak.stock_zh_a_hist(symbol=code, period="daily", start_date=start,
+                                end_date=end, adjust="qfq")
+        if df is None or getattr(df, "empty", True) or "收盘" not in df.columns:
+            return {}
+        closes = df["收盘"].astype(float).tolist()
+        out = {}
+        for p in periods:
+            out[p] = round((closes[-1] / closes[-1 - p] - 1) * 100, 2) if len(closes) > p else None
+        return out
+    except Exception as e:
+        if not _price_changes_disabled["disabled"]:
+            _price_changes_disabled["disabled"] = True
+            print(f"[stock_data] price_changes 首次失败({code}): {e} - "
+                  f"push2his 风控，本轮禁用该端点", file=sys.stderr)
+        return {}
+
+
+def price_changes_batch(codes, periods=(7, 30), max_workers=4):
+    """并发拉多只股票近 N 日涨幅。返回 {code: {7: x, 30: y}}。
+    push2his 风控（首次失败禁用本轮）时后续全 {}。"""
+    out = {}
+    codes = [c for c in codes if c]
+    if not codes:
+        return out
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        futs = {ex.submit(price_changes, c, periods): c for c in codes}
+        for fut in as_completed(futs):
+            c = futs[fut]
+            try:
+                out[c] = fut.result()
+            except Exception:
+                out[c] = {}
+    return out
+
+
 # ===== 阶段入口：enrich_candidates =====
 
 def _enrich_one(code, ths_map):

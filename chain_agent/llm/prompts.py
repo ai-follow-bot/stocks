@@ -91,7 +91,7 @@ SYNTHESIS_USER_TEMPLATE = """# 任务
 ## 龙虎榜（近 30 天机构净买 TOP）
 {dragon_tiger_text}
 
-## 资金面汇总（近60日涨幅 + 融资融券）
+## 资金面汇总（60/30/7日涨幅 + 融资融券）
 {fund_flow_text}
 
 # 研报评级（东财研报 + 一致预期 EPS）
