@@ -452,5 +452,56 @@
     "leaders": [],
     "second_tier": [],
     "tech_option_stocks": []
+  },
+  "半导体材料": {
+    "leaders": [
+      {
+        "code": "688126",
+        "name": "沪硅产业",
+        "symbol": "688126.SH"
+      },
+      {
+        "code": "300346",
+        "name": "南大光电",
+        "symbol": "300346.SZ"
+      },
+      {
+        "code": "688146",
+        "name": "中船特气",
+        "symbol": "688146.SH"
+      },
+      {
+        "code": "300666",
+        "name": "江丰电子",
+        "symbol": "300666.SZ"
+      },
+      {
+        "code": "688019",
+        "name": "安集科技",
+        "symbol": "688019.SH"
+      },
+      {
+        "code": "300054",
+        "name": "鼎龙股份",
+        "symbol": "300054.SZ"
+      },
+      {
+        "code": "688268",
+        "name": "华特气体",
+        "symbol": "688268.SH"
+      },
+      {
+        "code": "600206",
+        "name": "有研新材",
+        "symbol": "600206.SH"
+      }
+    ],
+    "second_tier": [],
+    "tech_option_stocks": []
+  },
+  "NPO": {
+    "leaders": [],
+    "second_tier": [],
+    "tech_option_stocks": []
   }
 }

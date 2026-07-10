@@ -615,5 +615,41 @@
     "related": [],
     "key_products": [],
     "technologies": []
+  },
+  "半导体材料": {
+    "name": "半导体材料",
+    "tier": 2,
+    "description": "硅片/光刻胶/电子特气/溅射靶材/CMP抛光液/湿电子化学品等半导体制造材料",
+    "include_sectors": [
+      "半导体材料"
+    ],
+    "upstream": [],
+    "downstream": [],
+    "related": [],
+    "key_products": [
+      "硅片",
+      "光刻胶",
+      "电子特气",
+      "溅射靶材",
+      "CMP抛光液",
+      "湿电子化学品",
+      "石英材料",
+      "前驱体",
+      "抛光垫"
+    ],
+    "technologies": []
+  },
+  "NPO": {
+    "name": "NPO",
+    "tier": 2,
+    "description": "用户自定义板块（待补充产业链数据）",
+    "include_sectors": [
+      "NPO"
+    ],
+    "upstream": [],
+    "downstream": [],
+    "related": [],
+    "key_products": [],
+    "technologies": []
   }
 }

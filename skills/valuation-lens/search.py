@@ -115,13 +115,14 @@ def _candidates_from_discovery(sector: str, days: int = 14) -> List[dict]:
     不读 sector_overflow_config.json（无手填候选/角色/forward_hint）。
     返回 [{code, name, source='discovered', segment_hint=<板块中文名>}]。
     """
-    from chain_agent.discovery.stock_detector import StockDetector
+    from chain_agent.discovery.stock_detector import StockDetector, SECTOR_KEYWORDS
 
     eco = _load_ecosystem()
     canon = _canonical_sector_key(sector)  # 归一化到 ecosystem canonical key
     sec_cfg = eco.get(canon) or {}
     sec_name = sec_cfg.get("name") or sector  # 中文名用于搜索
-    kps = sec_cfg.get("key_products") or []
+    # key_products 优先；空则回退 sector_keywords（让空壳板块也能用关键词收窄搜索/财联社过滤）
+    kps = sec_cfg.get("key_products") or SECTOR_KEYWORDS.get(canon) or []
     kw_tail = " ".join(kps[:3])  # 环节产品词拼进 query 提升召回
 
     provider, provider_name = _get_search_provider()
