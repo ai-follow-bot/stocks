@@ -118,8 +118,9 @@ def run_batch(sectors: list, days: int = 7, tavily_results: int = 10,
     }
 
 
-def _render_dragon_tiger_text(enriched_extras: dict, top_n: int = 10) -> str:
+def _render_dragon_tiger_text(enriched_extras: dict, top_n: int = 10, name_map: dict = None) -> str:
     """渲染龙虎榜机构净买 TOP，供 LLM 综合。"""
+    name_map = name_map or {}
     rows = []
     for code, ex in enriched_extras.items():
         dt = ex.get("dragon_tiger") or {}
@@ -130,6 +131,7 @@ def _render_dragon_tiger_text(enriched_extras: dict, top_n: int = 10) -> str:
             latest = records[0] if records else {}
             rows.append({
                 "code": code,
+                "name": name_map.get(code, code),
                 "net_wan": net,
                 "date": latest.get("date", ""),
                 "reason": latest.get("reason", ""),
@@ -137,40 +139,49 @@ def _render_dragon_tiger_text(enriched_extras: dict, top_n: int = 10) -> str:
     rows.sort(key=lambda x: x["net_wan"], reverse=True)
     if not rows:
         return "(近 30 天无机构净买入上榜记录)"
-    lines = ["| 代码 | 机构净买(万) | 上榜日期 | 上榜原因 |",
+    lines = ["| 名称 | 机构净买(万) | 上榜日期 | 上榜原因 |",
              "|------|-------------|---------|---------|"]
     for r in rows[:top_n]:
-        lines.append(f"| {r['code']} | {r['net_wan']:.0f} | {r['date']} | {r['reason'][:30]} |")
+        lines.append(f"| {r['name']} | {r['net_wan']:.0f} | {r['date']} | {r['reason'][:30]} |")
     return "\n".join(lines)
 
 
-def _render_fund_flow_text(enriched_extras: dict) -> str:
-    """渲染融资融券 + 120 日主力净流入汇总，供 LLM 综合。"""
+def _render_fund_flow_text(enriched_extras: dict, name_map: dict = None) -> str:
+    """渲染融资融券 + 120 日主力净流入汇总，供 LLM 综合。
+
+    主力净流入缺失（push2his 风控/禁用）时显示 "-"，不写 0.00（0 与"无数据"不可区分）。
+    """
+    name_map = name_map or {}
     rows = []
     for code, ex in enriched_extras.items():
         ff = ex.get("fund_flow_120d") or {}
-        inflow = ff.get("main_net_inflow")
+        inflow = ff.get("main_net_inflow")  # None = 拉取失败/禁用
         mg = ex.get("margin") or {}
-        chg = mg.get("margin_balance_change")
+        chg = mg.get("margin_balance_change")  # None = 无融资融券数据
         if inflow is None and chg is None:
             continue
         rows.append({
             "code": code,
-            "main_inflow_yi": (inflow or 0) / 1e8,
-            "margin_chg_pct": (chg or 0) * 100,
+            "name": name_map.get(code, code),
+            "main_inflow_yi": None if inflow is None else inflow / 1e8,
+            "margin_chg_pct": None if chg is None else chg * 100,
         })
     if not rows:
         return "(无资金面数据)"
-    rows.sort(key=lambda x: x["main_inflow_yi"], reverse=True)
-    lines = ["| 代码 | 120日主力净流入(亿) | 融资余额变化% |",
+    # None 沉底，其余按主力净流入降序
+    rows.sort(key=lambda x: (x["main_inflow_yi"] is None, x["main_inflow_yi"] or -1e18), reverse=True)
+    lines = ["| 名称 | 120日主力净流入(亿) | 融资余额变化% |",
              "|------|---------------------|--------------|"]
     for r in rows[:15]:
-        lines.append(f"| {r['code']} | {r['main_inflow_yi']:.2f} | {r['margin_chg_pct']:+.1f} |")
+        inflow_str = "-" if r["main_inflow_yi"] is None else f"{r['main_inflow_yi']:.2f}"
+        chg_str = "-" if r["margin_chg_pct"] is None else f"{r['margin_chg_pct']:+.1f}"
+        lines.append(f"| {r['name']} | {inflow_str} | {chg_str} |")
     return "\n".join(lines)
 
 
-def _render_research_text(enriched_extras: dict, top_n: int = 10) -> str:
+def _render_research_text(enriched_extras: dict, top_n: int = 10, name_map: dict = None) -> str:
     """渲染研报评级 + 一致预期 EPS，供 LLM 综合。"""
+    name_map = name_map or {}
     rows = []
     for code, ex in enriched_extras.items():
         rpts = ex.get("research_reports") or []
@@ -179,6 +190,7 @@ def _render_research_text(enriched_extras: dict, top_n: int = 10) -> str:
         top = rpts[0]
         rows.append({
             "code": code,
+            "name": name_map.get(code, code),
             "rating": top.get("rating", ""),
             "eps": top.get("predict_this_year_eps"),
             "org": top.get("org", ""),
@@ -187,7 +199,7 @@ def _render_research_text(enriched_extras: dict, top_n: int = 10) -> str:
         })
     if not rows:
         return "(无研报数据)"
-    lines = ["| 代码 | 评级 | 今年一致预期EPS | 机构 | 标题 | 日期 |",
+    lines = ["| 名称 | 评级 | 今年一致预期EPS | 机构 | 标题 | 日期 |",
              "|------|------|----------------|------|------|------|"]
     for r in rows[:top_n]:
         try:
@@ -195,7 +207,7 @@ def _render_research_text(enriched_extras: dict, top_n: int = 10) -> str:
         except (TypeError, ValueError):
             eps = "-"
         lines.append(
-            f"| {r['code']} | {r['rating']} | {eps} | {r['org']} | {r['title']} | {r['date']} |"
+            f"| {r['name']} | {r['rating']} | {eps} | {r['org']} | {r['title']} | {r['date']} |"
         )
     return "\n".join(lines)
 
@@ -272,14 +284,16 @@ def _fallback_report(result: dict, top_n: int = 15) -> str:
 
     # a-stock-data skill 集成：资金面 + 研报章节
     enriched_extras = result.get("enriched_extras") or {}
+    # code -> 名称映射，资金面/研报表用名称替代代码
+    name_map = {s["code"]: s.get("name", s["code"]) for s in scored.get("scored", [])}
     if enriched_extras:
         lines.append("\n## 4. 资金面信号\n")
         lines.append("### 龙虎榜（近 30 天机构净买）\n")
-        lines.append(_render_dragon_tiger_text(enriched_extras))
+        lines.append(_render_dragon_tiger_text(enriched_extras, name_map=name_map))
         lines.append("\n### 融资融券 + 120 日主力净流入\n")
-        lines.append(_render_fund_flow_text(enriched_extras))
+        lines.append(_render_fund_flow_text(enriched_extras, name_map=name_map))
         lines.append("\n## 5. 研报评级\n")
-        lines.append(_render_research_text(enriched_extras))
+        lines.append(_render_research_text(enriched_extras, name_map=name_map))
 
     lines.append("\n## 6. 数据缺口\n")
     gaps = []
@@ -329,11 +343,11 @@ def render_batch_report(batch: dict, top_n: int = 10, use_llm: bool = False) -> 
     all_scored.sort(key=lambda x: x["score"], reverse=True)
 
     lines.append("## 跨板块 Top 15 候选标的\n")
-    lines.append("| 排名 | 代码 | 名称 | 来源板块 | 角色 | 分数 |")
-    lines.append("|------|------|------|---------|------|------|")
+    lines.append("| 排名 | 名称 | 来源板块 | 角色 | 分数 |")
+    lines.append("|------|------|---------|------|------|")
     for i, s in enumerate(all_scored[:15], 1):
         lines.append(
-            f"| {i} | {s['code']} | {s['name']} | {s['from_sector']} | "
+            f"| {i} | {s['name']} | {s['from_sector']} | "
             f"{s['role']} | {s['score']} |"
         )
 

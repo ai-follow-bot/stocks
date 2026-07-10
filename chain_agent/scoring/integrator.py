@@ -180,12 +180,12 @@ def render_scored_text(scored_result: Dict, top_n: int = 15) -> str:
         )
     lines.append("")
     lines.append(f"## Top {top_n} 候选")
-    lines.append("| 排名 | 代码 | 名称 | 角色 | 分数 | 关键理由 |")
-    lines.append("|------|------|------|------|------|---------|")
+    lines.append("| 排名 | 名称 | 角色 | 分数 | 关键理由 |")
+    lines.append("|------|------|------|------|---------|")
     for i, s in enumerate(scored_result["scored"][:top_n], 1):
         rationale = "; ".join(s["rationale"][:3])
         lines.append(
-            f"| {i} | {s['code']} | {s['name']} | {s['role']} | {s['score']} | {rationale} |"
+            f"| {i} | {s['name']} | {s['role']} | {s['score']} | {rationale} |"
         )
 
     new_d = [s for s in scored_result["scored"] if s["source"] == "news"]
@@ -193,7 +193,7 @@ def render_scored_text(scored_result: Dict, top_n: int = 15) -> str:
         lines.append(f"\n## 🆕 动态新发现 ({len(new_d)} 只)")
         for s in new_d[:10]:
             lines.append(
-                f"- **{s['code']} {s['name']}** (分数 {s['score']}) — "
+                f"- **{s['name']}** (分数 {s['score']}) — "
                 f"{'; '.join(s['rationale'][:2])}"
             )
 

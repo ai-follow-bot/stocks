@@ -104,8 +104,8 @@ def _render_company(cr: dict) -> list:
     aligned = cr.get("aligned") or []
     lines.append("#### 三高筛选表（3 高）")
     lines.append("")
-    lines.append("| 代码 | 名称 | 高增长 | 高利润 | 高围墙 | 三高综合 | 达标 | chain | deep | val |")
-    lines.append("|------|------|--------|--------|--------|----------|------|-------|------|-----|")
+    lines.append("| 名称 | 高增长 | 高利润 | 高围墙 | 三高综合 | 达标 | chain | deep | val |")
+    lines.append("|------|--------|--------|--------|----------|------|-------|------|-----|")
     for a in aligned:
         th = a.get("three_high") or {}
         code = a.get("code", "")
@@ -119,7 +119,7 @@ def _render_company(cr: dict) -> list:
         deep_s = _v(a, "deep", "total")
         val_s = _v(a, "val", "score")
         lines.append(
-            f"| {code} | {name} | {_f(g)} | {_f(p)} | {_f(m)} | {_f(comp)} | {flag} | {chain_s} | {deep_s} | {val_s} |"
+            f"| {name} | {_f(g)} | {_f(p)} | {_f(m)} | {_f(comp)} | {flag} | {chain_s} | {deep_s} | {val_s} |"
         )
     lines.append("")
 
@@ -130,7 +130,7 @@ def _render_company(cr: dict) -> list:
     if high:
         for a in high:
             th = a.get("three_high") or {}
-            lines.append(f"- **{a.get('code')} {a.get('name')}**：三高综合 {th.get('composite')} "
+            lines.append(f"- **{a.get('name')}**：三高综合 {th.get('composite')} "
                          f"（增长{th.get('growth')}/利润{th.get('profit')}/围墙{th.get('moat')}）")
     elif top_comp:
         lines.append("> 无严格三高达标标的，以下为三高综合 top 5：")
@@ -138,7 +138,7 @@ def _render_company(cr: dict) -> list:
             th = a.get("three_high") or {}
             miss = th.get("missing") or []
             note = f"（缺：{','.join(miss)}）" if miss else ""
-            lines.append(f"- {a.get('code')} {a.get('name')}：三高综合 {th.get('composite')}{note}")
+            lines.append(f"- {a.get('name')}：三高综合 {th.get('composite')}{note}")
     else:
         lines.append("- （无可用三高数据）")
     lines.append("")
