@@ -23,38 +23,47 @@ _INDEX_SYMBOLS = [
 ]
 
 
-def _fetch_index() -> str:
-    """拉三大指数近 60 日，算近 5/20 日涨跌。akshare 偶发断连，每只重试 2 次。"""
-    lines = []
-    end = datetime.now().strftime("%Y%m%d")
-    start = (datetime.now() - timedelta(days=90)).strftime("%Y%m%d")
-    for name, sym in _INDEX_SYMBOLS:
-        df = None
-        for attempt in range(2):
-            try:
-                df = ak.stock_zh_index_daily_em(symbol=sym)
-                break
-            except Exception as e:
-                if attempt == 0:
-                    time.sleep(0.5)
-                else:
-                    print(f"[ce-value] 指数 {name} 拉取失败: {str(e)[:80]}", file=sys.stderr)
-        if df is None or getattr(df, "empty", True):
-            lines.append(f"- {name}: (拉取失败)")
-            continue
+def _fetch_one_index(name: str, sym: str) -> str:
+    """单指数：优先腾讯源(stock_zh_index_daily_tx，东财 push2 已封服务器 IP)，
+    失败回退东财(stock_zh_index_daily_em)。算近 5/20 日涨跌。"""
+    df = None
+    for fn_name in ("stock_zh_index_daily_tx", "stock_zh_index_daily_em"):
         try:
-            df = df.sort_values("date" if "date" in df.columns else df.columns[0], ascending=False)
-            close_col = "close" if "close" in df.columns else None
-            if close_col is None:
-                lines.append(f"- {name}: (无收盘列)")
-                continue
-            closes = df[close_col].astype(float).reset_index(drop=True)
-            last = closes.iloc[0]
-            chg5 = ((last / closes.iloc[4]) - 1) * 100 if len(closes) > 4 else None
-            chg20 = ((last / closes.iloc[19]) - 1) * 100 if len(closes) > 19 else None
-            lines.append(f"- {name}: 收盘 {last:.2f}，近5日 {chg5:+.1f}%，近20日 {chg20:+.1f}%" if chg5 is not None else f"- {name}: 收盘 {last:.2f}")
+            fn = getattr(ak, fn_name)
+            df = fn(symbol=sym)
+            if df is not None and not getattr(df, "empty", True):
+                break
         except Exception as e:
-            lines.append(f"- {name}: (解析失败 {str(e)[:60]})")
+            print(f"[ce-value] 指数 {name} {fn_name} 失败: {str(e)[:60]}", file=sys.stderr)
+            df = None
+    if df is None or getattr(df, "empty", True):
+        return f"- {name}: (拉取失败)"
+    try:
+        date_col = "date" if "date" in df.columns else df.columns[0]
+        close_col = "close" if "close" in df.columns else None
+        if close_col is None:
+            return f"- {name}: (无收盘列)"
+        df = df.sort_values(date_col, ascending=False)
+        closes = df[close_col].astype(float).reset_index(drop=True)
+        last = closes.iloc[0]
+        chg5 = ((last / closes.iloc[4]) - 1) * 100 if len(closes) > 4 else None
+        chg20 = ((last / closes.iloc[19]) - 1) * 100 if len(closes) > 19 else None
+        if chg5 is not None:
+            return f"- {name}: 收盘 {last:.2f}，近5日 {chg5:+.1f}%，近20日 {chg20:+.1f}%"
+        return f"- {name}: 收盘 {last:.2f}"
+    except Exception as e:
+        return f"- {name}: (解析失败 {str(e)[:60]})"
+
+
+def _fetch_index() -> str:
+    """拉三大指数近 60 日涨跌。腾讯源全历史较慢(~20s/只)，3 只并发拉。"""
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    lines = [""] * len(_INDEX_SYMBOLS)
+    with ThreadPoolExecutor(max_workers=3) as ex:
+        futs = {ex.submit(_fetch_one_index, name, sym): i
+                for i, (name, sym) in enumerate(_INDEX_SYMBOLS)}
+        for fut in as_completed(futs):
+            lines[futs[fut]] = fut.result()
     return "\n".join(lines) if lines else "(指数全部拉取失败)"
 
 
