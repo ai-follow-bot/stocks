@@ -178,7 +178,24 @@ def _candidates_from_discovery(sector: str, days: int = 14) -> List[dict]:
             n_arc += 1
     print(f"[valuation-lens] 自动发现 {len(seen)} 只候选（板块={sec_name}，"
           f"核心公司 {n_core}，财联社热门 {len(cls_hot)}，档案召回 {n_arc}）", file=sys.stderr)
-    return list(seen.values())
+
+    # 相关性过滤：剔掉归属「其它已知板块」的候选（防跑偏，如 半导体材料 里混入存储/服务器股）。
+    # 保留：core_companies（本板块核心公司）+ _determine_sector 为 None（未归类的潜在本板块股）
+    #       + 归属本板块(canon)的。剔除：_determine_sector 返回其它已知板块的（storage/ai_server 等）。
+    core_codes = {c.get("code") for c in load_core_companies(sector)}
+    filtered, dropped = [], []
+    for c in seen.values():
+        code = c.get("code")
+        if code in core_codes:
+            filtered.append(c); continue
+        det_sec = detector._determine_sector(code) if code else None
+        if det_sec and det_sec != canon:
+            dropped.append(f"{c.get('name','')}({det_sec})")
+        else:
+            filtered.append(c)
+    if dropped:
+        print(f"[valuation-lens] 相关性过滤剔除 {len(dropped)} 只其它板块股: {', '.join(dropped[:8])}", file=sys.stderr)
+    return filtered
 
 
 def _candidates_from_cailianshe(sec_name: str, kps: list, days: int = 14) -> List[dict]:

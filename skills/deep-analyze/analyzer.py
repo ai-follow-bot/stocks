@@ -944,6 +944,17 @@ def _upsert_deep_archive(chain_name: str, scoring_data: Optional[dict]) -> None:
 def analyze_chain(chain: str, days: int = 14, top_n: int = 8,
                   force_include_codes: Optional[List[str]] = None,
                   force_include_segment: Optional[str] = None) -> dict:
+    # 自动注入板块核心公司（core_companies）作 force_include 种子，让 deep 也锚定核心公司
+    # （与 val-lens/chain_agent 一致），避免候选池跑偏到非本板块股。
+    try:
+        from chain_agent.discovery.stock_detector import load_core_companies
+        core_codes = [c["code"] for c in load_core_companies(chain) if c.get("code")]
+        if core_codes:
+            existing = set(force_include_codes or [])
+            force_include_codes = list(existing | set(core_codes))
+    except Exception as e:
+        print(f"[deep-analyze] 加载 core_companies 失败: {e}", file=sys.stderr)
+
     print(f"[deep-analyze] === chain 模式: {chain} (days={days}, top_n={top_n}"
           f"{', force_include=' + str(force_include_codes) if force_include_codes else ''}) ===",
           file=sys.stderr)
