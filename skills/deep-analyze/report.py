@@ -87,8 +87,8 @@ def render_chain_report(result: dict) -> str:
         lines.append(supply_demand_analysis)
     if candidates:
         lines.append(f"\n## {4 if supply_demand_analysis else 3}. 三维评分（候选标的）\n")
-        lines.append("| 标的 | 代码 | 环节 | 供需(30) | 国替(30) | 业绩(40) | 总分 | 权重 | PE | 市值(亿) |")
-        lines.append("|------|------|------|---------|---------|---------|------|------|-----|---------|")
+        lines.append("| 标的 | 环节 | 供需(30) | 国替(30) | 业绩(40) | 总分 | 权重 | PE | 市值(亿) |")
+        lines.append("|------|------|---------|---------|---------|------|------|-----|---------|")
         # 按 total_score 排序
         def _total(c):
             sc = c.get("scores", {}) if isinstance(c.get("scores"), dict) else {}
@@ -99,7 +99,7 @@ def render_chain_report(result: dict) -> str:
             pe = c.get("pe") if c.get("pe") is not None else "-"
             mktcap = c.get("market_cap") if c.get("market_cap") is not None else "-"
             lines.append(
-                f"| {c.get('company', c.get('name',''))} | {c.get('stock_code', c.get('code',''))} | "
+                f"| {c.get('company', c.get('name',''))} | "
                 f"{c.get('segment','-')} | {sc.get('supply_demand','-')} | "
                 f"{sc.get('domestic_substitution','-')} | {sc.get('earnings_realization','-')} | "
                 f"{_total(c)} | {c.get('weight','-')} | {pe} | {mktcap} |"
@@ -109,7 +109,7 @@ def render_chain_report(result: dict) -> str:
         for c in candidates_sorted:
             sc = c.get("scores", {}) if isinstance(c.get("scores"), dict) else {}
             rat = c.get("rationale", {}) if isinstance(c.get("rationale"), dict) else {}
-            lines.append(f"\n**{c.get('company', c.get('name',''))}（{c.get('stock_code', c.get('code',''))}）— 总分 {_total(c)}**")
+            lines.append(f"\n**{c.get('company', c.get('name',''))}— 总分 {_total(c)}**")
             if rat.get("supply_demand_reason"):
                 lines.append(f"- 供需: {sc.get('supply_demand','-')} — {rat['supply_demand_reason']}")
             if rat.get("domestic_substitution_reason"):
