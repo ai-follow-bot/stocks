@@ -62,8 +62,8 @@ def render_chain_report(result: dict) -> str:
     sec = 2 if sda else 1
     if candidates:
         lines.append(f"\n## {sec}. 估值排序\n")
-        lines.append("| 标的 | 代码 | 稀缺 | 前瞻 | 供需 | 当前PE | PE处理 | 估值分 | 角色 | 逻辑 |")
-        lines.append("|------|------|------|------|------|--------|--------|--------|------|------|")
+        lines.append("| 标的 | 稀缺 | 前瞻 | 供需 | 当前PE | PE处理 | 估值分 | 角色 | 逻辑 |")
+        lines.append("|------|------|------|------|--------|--------|--------|------|------|")
         for c in candidates:
             sc = c.get("scarcity") or {}
             fw = c.get("forward") or {}
@@ -71,7 +71,7 @@ def render_chain_report(result: dict) -> str:
             pe = _fmt(c.get("pe"))
             name = c.get("company") or c.get("name", "")
             lines.append(
-                f"| {name} | {c.get('stock_code', c.get('code',''))} | "
+                f"| {name} | "
                 f"{_fmt(sc.get('score'), '?')} | {_fmt(fw.get('score'), '?')} | "
                 f"{_fmt(sd.get('score'), '?')} | {pe} | {c.get('pe_treatment','-')} | "
                 f"**{c.get('valuation_score','-')}** | {_role_badge(c.get('role',''))} | "
@@ -87,7 +87,7 @@ def render_chain_report(result: dict) -> str:
             pe_ctx = c.get("pe_context") or {}
             name = c.get("company") or c.get("name", "")
             lines.append(
-                f"\n**{name}（{c.get('stock_code', c.get('code',''))}）— "
+                f"\n**{name}— "
                 f"估值分 {c.get('valuation_score','-')} · {_role_badge(c.get('role',''))}**"
             )
             lines.append(f"- 稀缺: {sc.get('score','?')} — {sc.get('reason','')}")
