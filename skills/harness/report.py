@@ -7,6 +7,11 @@ def _disclaimer(text: str) -> str:
     return text + "\n\n---\n\n> **免责声明：** " + config.DISCLAIMER_TEXT
 
 
+def _f(v) -> str:
+    """None -> '-'，其余 str()。路径未覆盖的分数/角色显示 '-'。"""
+    return "-" if v is None else str(v)
+
+
 def render_report(result: dict) -> str:
     if "error" in result:
         return f"❌ 失败: {result['error']}"
@@ -39,26 +44,26 @@ def render_report(result: dict) -> str:
     # 对齐表
     lines.append("\n## 2. 标的对齐表\n")
     if mode == "chain":
-        lines.append("| 代码 | 名称 | chain(score/role) | deep(total) | val(score/role) | 一致性 |")
-        lines.append("|------|------|------|------|------|------|")
+        lines.append("| 名称 | chain(score/role) | deep(total) | val(score/role) | 一致性 |")
+        lines.append("|------|------|------|------|------|")
         for e in aligned:
             c = e.get("chain") or {}
             d = e.get("deep") or {}
             v = e.get("val") or {}
             lines.append(
-                f"| {e['code']} | {e['name']} | {c.get('score','-')}({c.get('role','-')}) | "
-                f"{d.get('total','-')} | {v.get('score','-')}({v.get('role','-')}) | "
+                f"| {e['name']} | {_f(c.get('score'))}({_f(c.get('role'))}) | "
+                f"{_f(d.get('total'))} | {_f(v.get('score'))}({_f(v.get('role'))}) | "
                 f"{e['consistency']['label']} |"
             )
     else:
-        lines.append("| 代码 | 名称 | deep(total) | val(score/role) | 一致性 |")
-        lines.append("|------|------|------|------|------|")
+        lines.append("| 名称 | deep(total) | val(score/role) | 一致性 |")
+        lines.append("|------|------|------|------|")
         for e in aligned:
             d = e.get("deep") or {}
             v = e.get("val") or {}
             lines.append(
-                f"| {e['code']} | {e['name']} | {d.get('total','-')} | "
-                f"{v.get('score','-')}({v.get('role','-')}) | {e['consistency']['label']} |"
+                f"| {e['name']} | {_f(d.get('total'))} | "
+                f"{_f(v.get('score'))}({_f(v.get('role'))}) | {e['consistency']['label']} |"
             )
 
     # 方法论说明
