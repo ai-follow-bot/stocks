@@ -146,36 +146,54 @@ def _render_dragon_tiger_text(enriched_extras: dict, top_n: int = 10, name_map: 
     return "\n".join(lines)
 
 
-def _render_fund_flow_text(enriched_extras: dict, name_map: dict = None) -> str:
-    """渲染融资融券 + 120 日主力净流入汇总，供 LLM 综合。
+def _build_change_60d_map(enriched_extras: dict) -> dict:
+    """各股近60日涨幅：直接用 AkshareQuoteProvider 拉 stock_zh_a_spot_em（批量行情自带
+    「60日涨跌幅」列）。独立于 QUOTE_PROVIDER（默认 easyquotation 无此字段）；类级缓存，
+    scoring 已用 akshare 时复用、零额外网络。失败返回 {}（涨幅列显示 "-"）。"""
+    if not enriched_extras:
+        return {}
+    try:
+        from .scoring.quotes import AkshareQuoteProvider
+        qmap = AkshareQuoteProvider().get_quotes(list(enriched_extras.keys())) or {}
+        return {c: (q or {}).get("change_60d") for c, q in qmap.items()}
+    except Exception as e:
+        print(f"[agent] 近60日涨幅拉取失败: {str(e)[:80]}", file=sys.stderr)
+        return {}
 
-    主力净流入缺失（push2his 风控/禁用）时显示 "-"，不写 0.00（0 与"无数据"不可区分）。
+
+def _render_fund_flow_text(enriched_extras: dict, name_map: dict = None,
+                           change_60d_map: dict = None) -> str:
+    """渲染近60日涨幅 + 融资融券余额变化。
+
+    涨幅取自批量行情自带的「60日涨跌幅」（可靠，零额外调用，不依赖易风控的 push2his
+    单股历史端点）；融资融券来自 enrich。缺失写 "-"。
     """
     name_map = name_map or {}
+    change_60d_map = change_60d_map or {}
     rows = []
     for code, ex in enriched_extras.items():
-        ff = ex.get("fund_flow_120d") or {}
-        inflow = ff.get("main_net_inflow")  # None = 拉取失败/禁用
+        chg60 = change_60d_map.get(code)
         mg = ex.get("margin") or {}
         chg = mg.get("margin_balance_change")  # None = 无融资融券数据
-        if inflow is None and chg is None:
+        if chg60 is None and chg is None:
             continue
         rows.append({
             "code": code,
             "name": name_map.get(code, code),
-            "main_inflow_yi": None if inflow is None else inflow / 1e8,
+            "change_60d": chg60,
             "margin_chg_pct": None if chg is None else chg * 100,
         })
     if not rows:
         return "(无资金面数据)"
-    # None 沉底，其余按主力净流入降序
-    rows.sort(key=lambda x: (x["main_inflow_yi"] is None, x["main_inflow_yi"] or -1e18), reverse=True)
-    lines = ["| 名称 | 120日主力净流入(亿) | 融资余额变化% |",
-             "|------|---------------------|--------------|"]
+    # None 沉底，其余按涨幅降序（None 作 -inf，reverse 后自然沉底）
+    rows.sort(key=lambda x: x["change_60d"] if x["change_60d"] is not None else float('-inf'),
+              reverse=True)
+    lines = ["| 名称 | 近60日涨幅% | 融资余额变化% |",
+             "|------|------------|--------------|"]
     for r in rows[:15]:
-        inflow_str = "-" if r["main_inflow_yi"] is None else f"{r['main_inflow_yi']:.2f}"
+        chg60_str = "-" if r["change_60d"] is None else f"{r['change_60d']:+.1f}"
         chg_str = "-" if r["margin_chg_pct"] is None else f"{r['margin_chg_pct']:+.1f}"
-        lines.append(f"| {r['name']} | {inflow_str} | {chg_str} |")
+        lines.append(f"| {r['name']} | {chg60_str} | {chg_str} |")
     return "\n".join(lines)
 
 
@@ -243,7 +261,11 @@ def llm_synthesize(result: dict, top_n: int = 15) -> str:
         news_count=news_count,
         news_content=news_content or "(无)",
         dragon_tiger_text=_render_dragon_tiger_text(enriched_extras)[:3000],
-        fund_flow_text=_render_fund_flow_text(enriched_extras)[:3000],
+        fund_flow_text=_render_fund_flow_text(
+            enriched_extras,
+            name_map={s["code"]: s.get("name", s["code"]) for s in result["scored"].get("scored", [])},
+            change_60d_map=_build_change_60d_map(enriched_extras),
+        )[:3000],
         research_text=_render_research_text(enriched_extras)[:3000],
         top_n=top_n,
         scored_text=scoring.render_scored_text(result["scored"], top_n=top_n),
@@ -290,8 +312,9 @@ def _fallback_report(result: dict, top_n: int = 15) -> str:
         lines.append("\n## 4. 资金面信号\n")
         lines.append("### 龙虎榜（近 30 天机构净买）\n")
         lines.append(_render_dragon_tiger_text(enriched_extras, name_map=name_map))
-        lines.append("\n### 融资融券 + 120 日主力净流入\n")
-        lines.append(_render_fund_flow_text(enriched_extras, name_map=name_map))
+        lines.append("\n### 近60日涨幅 + 融资融券\n")
+        lines.append(_render_fund_flow_text(enriched_extras, name_map=name_map,
+                                            change_60d_map=_build_change_60d_map(enriched_extras)))
         lines.append("\n## 5. 研报评级\n")
         lines.append(_render_research_text(enriched_extras, name_map=name_map))
 

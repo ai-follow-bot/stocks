@@ -25,6 +25,7 @@ class QuoteProvider(ABC):
 
 class AkshareQuoteProvider(QuoteProvider):
     """akshare 行情源"""
+    _cache = None  # 全 A 股行情缓存（类级，多实例共享，一次性拉）
 
     def __init__(self):
         try:
@@ -32,10 +33,10 @@ class AkshareQuoteProvider(QuoteProvider):
         except ImportError as e:
             raise ImportError("akshare 未安装，请运行: pip install akshare") from e
         self._ak = ak
-        self._cache = None  # 全 A 股行情缓存（一次性拉）
+        # _cache 为类属性，多实例共享（避免重复批量拉全 A 股行情）
 
     def _ensure_cache(self):
-        if self._cache is not None:
+        if AkshareQuoteProvider._cache is not None:
             return
         import time
         last_err = None
@@ -43,7 +44,7 @@ class AkshareQuoteProvider(QuoteProvider):
             try:
                 df = self._ak.stock_zh_a_spot_em()
                 # 字段：代码, 名称, 最新价, 涨跌幅, 总市值, 市盈率-动态, ...
-                self._cache = {}
+                AkshareQuoteProvider._cache = {}
                 for _, row in df.iterrows():
                     code = str(row.get("代码", ""))
                     if not code:
@@ -65,15 +66,21 @@ class AkshareQuoteProvider(QuoteProvider):
                         chg = float(chg_raw) if chg_raw not in (None, "-") else 0.0
                     except Exception:
                         chg = 0.0
-                    self._cache[code] = {
+                    chg60_raw = row.get("60日涨跌幅")
+                    try:
+                        chg60 = float(chg60_raw) if chg60_raw not in (None, "-") else None
+                    except Exception:
+                        chg60 = None
+                    AkshareQuoteProvider._cache[code] = {
                         "name": str(row.get("名称", "")),
                         "pe": pe,
                         "market_cap": cap,
                         "change_pct": chg,
+                        "change_60d": chg60,
                     }
                 if attempt > 0:
                     print(f"[AkshareQuote] 第 {attempt+1} 次重试成功，"
-                          f"拉到 {len(self._cache)} 只", flush=True)
+                          f"拉到 {len(AkshareQuoteProvider._cache)} 只", flush=True)
                 return
             except Exception as e:
                 last_err = e
@@ -82,11 +89,11 @@ class AkshareQuoteProvider(QuoteProvider):
                 if attempt < 2:
                     time.sleep(2)
         print(f"[AkshareQuote] 3 次重试全失败，PE/市值将为 null", flush=True)
-        self._cache = {}
+        AkshareQuoteProvider._cache = {}
 
     def get_quotes(self, codes: List[str]) -> Dict[str, Dict]:
         self._ensure_cache()
-        return {c: self._cache.get(c, {}) for c in codes if c in self._cache}
+        return {c: AkshareQuoteProvider._cache.get(c, {}) for c in codes if c in AkshareQuoteProvider._cache}
 
 
 class EasyquotationQuoteProvider(QuoteProvider):
