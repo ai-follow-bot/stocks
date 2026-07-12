@@ -1,0 +1,1574 @@
+{
+  "纯碱": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "化学原料",
+    "stock_count": 5,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "氯碱": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "化学原料",
+    "stock_count": 14,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "无机盐": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "化学原料",
+    "stock_count": 10,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "其他化学原料": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "化学原料",
+    "stock_count": 14,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "煤化工": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "化学原料",
+    "stock_count": 8,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "钛白粉": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "化学原料",
+    "stock_count": 6,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "涂料油墨": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "化学制品",
+    "stock_count": 17,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "民爆制品": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "化学制品",
+    "stock_count": 13,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "纺织化学制品": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "化学制品",
+    "stock_count": 13,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "其他化学制品": {
+    "sectors": [
+      "半导体材料"
+    ],
+    "counts": {
+      "半导体材料": 1
+    },
+    "l1": "基础化工",
+    "l2": "化学制品",
+    "stock_count": 73,
+    "classified_count": 1,
+    "notes": "",
+    "auto": true
+  },
+  "氟化工": {
+    "sectors": [
+      "半导体材料"
+    ],
+    "counts": {
+      "半导体材料": 4
+    },
+    "l1": "基础化工",
+    "l2": "化学制品",
+    "stock_count": 10,
+    "classified_count": 4,
+    "notes": "",
+    "auto": true
+  },
+  "聚氨酯": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "化学制品",
+    "stock_count": 8,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "食品及饲料添加剂": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "化学制品",
+    "stock_count": 22,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "有机硅": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "化学制品",
+    "stock_count": 10,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "胶黏剂及胶带": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "化学制品",
+    "stock_count": 5,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "涤纶": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "化学纤维",
+    "stock_count": 10,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "粘胶": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "化学纤维",
+    "stock_count": 4,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "其他化学纤维": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "化学纤维",
+    "stock_count": 7,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "氨纶": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "化学纤维",
+    "stock_count": 1,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "锦纶": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "化学纤维",
+    "stock_count": 5,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "其他塑料制品": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "塑料",
+    "stock_count": 20,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "改性塑料": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "塑料",
+    "stock_count": 18,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "合成树脂": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "塑料",
+    "stock_count": 14,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "膜材料": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "塑料",
+    "stock_count": 21,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "其他橡胶制品": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "橡胶",
+    "stock_count": 9,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "炭黑": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "橡胶",
+    "stock_count": 6,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "橡胶助剂": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "橡胶",
+    "stock_count": 2,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "氮肥": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "农化制品",
+    "stock_count": 6,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "磷肥及磷化工": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "农化制品",
+    "stock_count": 9,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "农药": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "农化制品",
+    "stock_count": 30,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "钾肥": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "农化制品",
+    "stock_count": 3,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "复合肥": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "农化制品",
+    "stock_count": 10,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "非金属材料Ⅲ": {
+    "sectors": [],
+    "counts": {},
+    "l1": "基础化工",
+    "l2": "非金属材料Ⅱ",
+    "stock_count": 7,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "其他金属新材料": {
+    "sectors": [],
+    "counts": {},
+    "l1": "有色金属",
+    "l2": "金属新材料",
+    "stock_count": 17,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "磁性材料": {
+    "sectors": [
+      "机器人"
+    ],
+    "counts": {
+      "机器人": 13
+    },
+    "l1": "有色金属",
+    "l2": "金属新材料",
+    "stock_count": 15,
+    "classified_count": 13,
+    "notes": "",
+    "auto": true
+  },
+  "铝": {
+    "sectors": [],
+    "counts": {},
+    "l1": "有色金属",
+    "l2": "工业金属",
+    "stock_count": 31,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "铜": {
+    "sectors": [],
+    "counts": {},
+    "l1": "有色金属",
+    "l2": "工业金属",
+    "stock_count": 16,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "铅锌": {
+    "sectors": [],
+    "counts": {},
+    "l1": "有色金属",
+    "l2": "工业金属",
+    "stock_count": 13,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "黄金": {
+    "sectors": [],
+    "counts": {},
+    "l1": "有色金属",
+    "l2": "贵金属",
+    "stock_count": 10,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "白银": {
+    "sectors": [],
+    "counts": {},
+    "l1": "有色金属",
+    "l2": "贵金属",
+    "stock_count": 1,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "稀土": {
+    "sectors": [],
+    "counts": {},
+    "l1": "有色金属",
+    "l2": "小金属",
+    "stock_count": 5,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "钨": {
+    "sectors": [],
+    "counts": {},
+    "l1": "有色金属",
+    "l2": "小金属",
+    "stock_count": 4,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "其他小金属": {
+    "sectors": [],
+    "counts": {},
+    "l1": "有色金属",
+    "l2": "小金属",
+    "stock_count": 15,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "钼": {
+    "sectors": [],
+    "counts": {},
+    "l1": "有色金属",
+    "l2": "小金属",
+    "stock_count": 2,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "钴": {
+    "sectors": [],
+    "counts": {},
+    "l1": "有色金属",
+    "l2": "能源金属",
+    "stock_count": 4,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "镍": {
+    "sectors": [],
+    "counts": {},
+    "l1": "有色金属",
+    "l2": "能源金属",
+    "stock_count": 1,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "锂": {
+    "sectors": [],
+    "counts": {},
+    "l1": "有色金属",
+    "l2": "能源金属",
+    "stock_count": 8,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "分立器件": {
+    "sectors": [
+      "功率半导体",
+      "optical_chip",
+      "物理AI"
+    ],
+    "counts": {
+      "功率半导体": 15,
+      "optical_chip": 2,
+      "物理AI": 1
+    },
+    "l1": "电子",
+    "l2": "半导体",
+    "stock_count": 18,
+    "classified_count": 18,
+    "notes": "",
+    "auto": true
+  },
+  "半导体材料": {
+    "sectors": [
+      "半导体材料",
+      "特种集成电路"
+    ],
+    "counts": {
+      "半导体材料": 24,
+      "特种集成电路": 1
+    },
+    "l1": "电子",
+    "l2": "半导体",
+    "stock_count": 25,
+    "classified_count": 25,
+    "notes": "",
+    "auto": true
+  },
+  "数字芯片设计": {
+    "sectors": [
+      "storage",
+      "特种集成电路",
+      "CPU",
+      "机器人",
+      "物理AI"
+    ],
+    "counts": {
+      "CPU": 4,
+      "特种集成电路": 6,
+      "storage": 8,
+      "机器人": 1,
+      "物理AI": 1
+    },
+    "l1": "电子",
+    "l2": "半导体",
+    "stock_count": 52,
+    "classified_count": 20,
+    "notes": "",
+    "auto": true
+  },
+  "模拟芯片设计": {
+    "sectors": [
+      "物理AI"
+    ],
+    "counts": {
+      "物理AI": 1
+    },
+    "l1": "电子",
+    "l2": "半导体",
+    "stock_count": 35,
+    "classified_count": 1,
+    "notes": "",
+    "auto": true
+  },
+  "集成电路制造": {
+    "sectors": [
+      "功率半导体"
+    ],
+    "counts": {
+      "功率半导体": 3
+    },
+    "l1": "电子",
+    "l2": "半导体",
+    "stock_count": 7,
+    "classified_count": 3,
+    "notes": "",
+    "auto": true
+  },
+  "集成电路封测": {
+    "sectors": [
+      "chiplet"
+    ],
+    "counts": {
+      "chiplet": 11
+    },
+    "l1": "电子",
+    "l2": "半导体",
+    "stock_count": 13,
+    "classified_count": 11,
+    "notes": "",
+    "auto": true
+  },
+  "半导体设备": {
+    "sectors": [
+      "半导体设备"
+    ],
+    "counts": {
+      "半导体设备": 24
+    },
+    "l1": "电子",
+    "l2": "半导体",
+    "stock_count": 24,
+    "classified_count": 24,
+    "notes": "",
+    "auto": true
+  },
+  "印制电路板": {
+    "sectors": [
+      "pcb",
+      "ccl",
+      "copper_foil"
+    ],
+    "counts": {
+      "pcb": 36,
+      "ccl": 7,
+      "copper_foil": 1
+    },
+    "l1": "电子",
+    "l2": "元件",
+    "stock_count": 43,
+    "classified_count": 44,
+    "notes": "",
+    "auto": true
+  },
+  "被动元件": {
+    "sectors": [
+      "mlcc"
+    ],
+    "counts": {
+      "mlcc": 3
+    },
+    "l1": "电子",
+    "l2": "元件",
+    "stock_count": 15,
+    "classified_count": 3,
+    "notes": "",
+    "auto": true
+  },
+  "面板": {
+    "sectors": [
+      "玻璃基板",
+      "TGV",
+      "chiplet"
+    ],
+    "counts": {
+      "玻璃基板": 1,
+      "TGV": 1,
+      "chiplet": 1
+    },
+    "l1": "电子",
+    "l2": "光学光电子",
+    "stock_count": 39,
+    "classified_count": 3,
+    "notes": "",
+    "auto": true
+  },
+  "LED": {
+    "sectors": [],
+    "counts": {},
+    "l1": "电子",
+    "l2": "光学光电子",
+    "stock_count": 30,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "光学元件": {
+    "sectors": [
+      "物理AI"
+    ],
+    "counts": {
+      "物理AI": 1
+    },
+    "l1": "电子",
+    "l2": "光学光电子",
+    "stock_count": 25,
+    "classified_count": 1,
+    "notes": "",
+    "auto": true
+  },
+  "其他电子Ⅲ": {
+    "sectors": [
+      "power_supply",
+      "机器人"
+    ],
+    "counts": {
+      "power_supply": 3,
+      "机器人": 1
+    },
+    "l1": "电子",
+    "l2": "其他电子Ⅱ",
+    "stock_count": 33,
+    "classified_count": 4,
+    "notes": "",
+    "auto": true
+  },
+  "品牌消费电子": {
+    "sectors": [],
+    "counts": {},
+    "l1": "电子",
+    "l2": "消费电子",
+    "stock_count": 10,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "消费电子零部件及组装": {
+    "sectors": [
+      "liquid_cooling",
+      "power_supply",
+      "storage",
+      "ai_server",
+      "switch",
+      "datacenter",
+      "chiplet"
+    ],
+    "counts": {
+      "liquid_cooling": 3,
+      "power_supply": 2,
+      "ai_server": 1,
+      "switch": 1,
+      "datacenter": 1,
+      "storage": 2,
+      "chiplet": 1
+    },
+    "l1": "电子",
+    "l2": "消费电子",
+    "stock_count": 80,
+    "classified_count": 11,
+    "notes": "",
+    "auto": true
+  },
+  "电子化学品Ⅲ": {
+    "sectors": [
+      "半导体材料",
+      "ccl",
+      "mlcc"
+    ],
+    "counts": {
+      "半导体材料": 18,
+      "ccl": 2,
+      "mlcc": 1
+    },
+    "l1": "电子",
+    "l2": "电子化学品Ⅱ",
+    "stock_count": 34,
+    "classified_count": 21,
+    "notes": "",
+    "auto": true
+  },
+  "车身附件及饰件": {
+    "sectors": [],
+    "counts": {},
+    "l1": "汽车",
+    "l2": "汽车零部件",
+    "stock_count": 36,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "底盘与发动机系统": {
+    "sectors": [],
+    "counts": {},
+    "l1": "汽车",
+    "l2": "汽车零部件",
+    "stock_count": 90,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "轮胎轮毂": {
+    "sectors": [],
+    "counts": {},
+    "l1": "汽车",
+    "l2": "汽车零部件",
+    "stock_count": 21,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "其他汽车零部件": {
+    "sectors": [],
+    "counts": {},
+    "l1": "汽车",
+    "l2": "汽车零部件",
+    "stock_count": 55,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "汽车电子电气系统": {
+    "sectors": [
+      "物理AI"
+    ],
+    "counts": {
+      "物理AI": 2
+    },
+    "l1": "汽车",
+    "l2": "汽车零部件",
+    "stock_count": 38,
+    "classified_count": 2,
+    "notes": "",
+    "auto": true
+  },
+  "汽车经销商": {
+    "sectors": [],
+    "counts": {},
+    "l1": "汽车",
+    "l2": "汽车服务",
+    "stock_count": 5,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "汽车综合服务": {
+    "sectors": [],
+    "counts": {},
+    "l1": "汽车",
+    "l2": "汽车服务",
+    "stock_count": 5,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "其他运输设备": {
+    "sectors": [],
+    "counts": {},
+    "l1": "汽车",
+    "l2": "摩托车及其他",
+    "stock_count": 8,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "摩托车": {
+    "sectors": [],
+    "counts": {},
+    "l1": "汽车",
+    "l2": "摩托车及其他",
+    "stock_count": 8,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "电动乘用车": {
+    "sectors": [],
+    "counts": {},
+    "l1": "汽车",
+    "l2": "乘用车",
+    "stock_count": 3,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "综合乘用车": {
+    "sectors": [],
+    "counts": {},
+    "l1": "汽车",
+    "l2": "乘用车",
+    "stock_count": 5,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "商用载货车": {
+    "sectors": [],
+    "counts": {},
+    "l1": "汽车",
+    "l2": "商用车",
+    "stock_count": 8,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "商用载客车": {
+    "sectors": [],
+    "counts": {},
+    "l1": "汽车",
+    "l2": "商用车",
+    "stock_count": 5,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "电机Ⅲ": {
+    "sectors": [
+      "机器人"
+    ],
+    "counts": {
+      "机器人": 2
+    },
+    "l1": "电力设备",
+    "l2": "电机Ⅱ",
+    "stock_count": 26,
+    "classified_count": 2,
+    "notes": "",
+    "auto": true
+  },
+  "综合电力设备商": {
+    "sectors": [],
+    "counts": {},
+    "l1": "电力设备",
+    "l2": "其他电源设备Ⅱ",
+    "stock_count": 2,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "火电设备": {
+    "sectors": [],
+    "counts": {},
+    "l1": "电力设备",
+    "l2": "其他电源设备Ⅱ",
+    "stock_count": 3,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "其他电源设备Ⅲ": {
+    "sectors": [
+      "power_supply",
+      "datacenter"
+    ],
+    "counts": {
+      "power_supply": 8,
+      "datacenter": 2
+    },
+    "l1": "电力设备",
+    "l2": "其他电源设备Ⅱ",
+    "stock_count": 25,
+    "classified_count": 10,
+    "notes": "",
+    "auto": true
+  },
+  "硅料硅片": {
+    "sectors": [],
+    "counts": {},
+    "l1": "电力设备",
+    "l2": "光伏设备",
+    "stock_count": 7,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "光伏电池组件": {
+    "sectors": [],
+    "counts": {},
+    "l1": "电力设备",
+    "l2": "光伏设备",
+    "stock_count": 21,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "逆变器": {
+    "sectors": [],
+    "counts": {},
+    "l1": "电力设备",
+    "l2": "光伏设备",
+    "stock_count": 9,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "光伏辅材": {
+    "sectors": [],
+    "counts": {},
+    "l1": "电力设备",
+    "l2": "光伏设备",
+    "stock_count": 17,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "光伏加工设备": {
+    "sectors": [],
+    "counts": {},
+    "l1": "电力设备",
+    "l2": "光伏设备",
+    "stock_count": 10,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "风电整机": {
+    "sectors": [],
+    "counts": {},
+    "l1": "电力设备",
+    "l2": "风电设备",
+    "stock_count": 5,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "风电零部件": {
+    "sectors": [],
+    "counts": {},
+    "l1": "电力设备",
+    "l2": "风电设备",
+    "stock_count": 24,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "锂电池": {
+    "sectors": [
+      "copper_foil"
+    ],
+    "counts": {
+      "copper_foil": 5
+    },
+    "l1": "电力设备",
+    "l2": "电池",
+    "stock_count": 26,
+    "classified_count": 5,
+    "notes": "",
+    "auto": true
+  },
+  "电池化学品": {
+    "sectors": [],
+    "counts": {},
+    "l1": "电力设备",
+    "l2": "电池",
+    "stock_count": 42,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "锂电专用设备": {
+    "sectors": [],
+    "counts": {},
+    "l1": "电力设备",
+    "l2": "电池",
+    "stock_count": 19,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "燃料电池": {
+    "sectors": [],
+    "counts": {},
+    "l1": "电力设备",
+    "l2": "电池",
+    "stock_count": 1,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "蓄电池及其他电池": {
+    "sectors": [],
+    "counts": {},
+    "l1": "电力设备",
+    "l2": "电池",
+    "stock_count": 9,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "输变电设备": {
+    "sectors": [],
+    "counts": {},
+    "l1": "电力设备",
+    "l2": "电网设备",
+    "stock_count": 27,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "配电设备": {
+    "sectors": [],
+    "counts": {},
+    "l1": "电力设备",
+    "l2": "电网设备",
+    "stock_count": 25,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "电网自动化设备": {
+    "sectors": [],
+    "counts": {},
+    "l1": "电力设备",
+    "l2": "电网设备",
+    "stock_count": 25,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "电工仪器仪表": {
+    "sectors": [],
+    "counts": {},
+    "l1": "电力设备",
+    "l2": "电网设备",
+    "stock_count": 12,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "线缆部件及其他": {
+    "sectors": [],
+    "counts": {},
+    "l1": "电力设备",
+    "l2": "电网设备",
+    "stock_count": 35,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "机床工具": {
+    "sectors": [],
+    "counts": {},
+    "l1": "机械设备",
+    "l2": "通用设备",
+    "stock_count": 18,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "磨具磨料": {
+    "sectors": [],
+    "counts": {},
+    "l1": "机械设备",
+    "l2": "通用设备",
+    "stock_count": 12,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "制冷空调设备": {
+    "sectors": [
+      "liquid_cooling"
+    ],
+    "counts": {
+      "liquid_cooling": 3
+    },
+    "l1": "机械设备",
+    "l2": "通用设备",
+    "stock_count": 18,
+    "classified_count": 3,
+    "notes": "",
+    "auto": true
+  },
+  "其他通用设备": {
+    "sectors": [
+      "cooling_components",
+      "机器人"
+    ],
+    "counts": {
+      "cooling_components": 5,
+      "机器人": 1
+    },
+    "l1": "机械设备",
+    "l2": "通用设备",
+    "stock_count": 46,
+    "classified_count": 6,
+    "notes": "",
+    "auto": true
+  },
+  "仪器仪表": {
+    "sectors": [
+      "半导体设备"
+    ],
+    "counts": {
+      "半导体设备": 3
+    },
+    "l1": "机械设备",
+    "l2": "通用设备",
+    "stock_count": 54,
+    "classified_count": 3,
+    "notes": "",
+    "auto": true
+  },
+  "金属制品": {
+    "sectors": [
+      "机器人"
+    ],
+    "counts": {
+      "机器人": 7
+    },
+    "l1": "机械设备",
+    "l2": "通用设备",
+    "stock_count": 70,
+    "classified_count": 7,
+    "notes": "",
+    "auto": true
+  },
+  "能源及重型设备": {
+    "sectors": [],
+    "counts": {},
+    "l1": "机械设备",
+    "l2": "专用设备",
+    "stock_count": 54,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "楼宇设备": {
+    "sectors": [
+      "机器人"
+    ],
+    "counts": {
+      "机器人": 1
+    },
+    "l1": "机械设备",
+    "l2": "专用设备",
+    "stock_count": 14,
+    "classified_count": 1,
+    "notes": "",
+    "auto": true
+  },
+  "纺织服装设备": {
+    "sectors": [],
+    "counts": {},
+    "l1": "机械设备",
+    "l2": "专用设备",
+    "stock_count": 12,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "农用机械": {
+    "sectors": [],
+    "counts": {},
+    "l1": "机械设备",
+    "l2": "专用设备",
+    "stock_count": 8,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "印刷包装机械": {
+    "sectors": [],
+    "counts": {},
+    "l1": "机械设备",
+    "l2": "专用设备",
+    "stock_count": 10,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "其他专用设备": {
+    "sectors": [
+      "liquid_cooling",
+      "机器人",
+      "cooling_components"
+    ],
+    "counts": {
+      "liquid_cooling": 2,
+      "机器人": 1,
+      "cooling_components": 1
+    },
+    "l1": "机械设备",
+    "l2": "专用设备",
+    "stock_count": 80,
+    "classified_count": 4,
+    "notes": "",
+    "auto": true
+  },
+  "轨交设备Ⅲ": {
+    "sectors": [],
+    "counts": {},
+    "l1": "机械设备",
+    "l2": "轨交设备Ⅱ",
+    "stock_count": 31,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "工程机械整机": {
+    "sectors": [],
+    "counts": {},
+    "l1": "机械设备",
+    "l2": "工程机械",
+    "stock_count": 19,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "工程机械器件": {
+    "sectors": [],
+    "counts": {},
+    "l1": "机械设备",
+    "l2": "工程机械",
+    "stock_count": 9,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "机器人": {
+    "sectors": [
+      "机器人"
+    ],
+    "counts": {
+      "机器人": 17
+    },
+    "l1": "机械设备",
+    "l2": "自动化设备",
+    "stock_count": 17,
+    "classified_count": 17,
+    "notes": "",
+    "auto": true
+  },
+  "工控设备": {
+    "sectors": [],
+    "counts": {},
+    "l1": "机械设备",
+    "l2": "自动化设备",
+    "stock_count": 27,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "激光设备": {
+    "sectors": [
+      "optical_module"
+    ],
+    "counts": {
+      "optical_module": 1
+    },
+    "l1": "机械设备",
+    "l2": "自动化设备",
+    "stock_count": 10,
+    "classified_count": 1,
+    "notes": "",
+    "auto": true
+  },
+  "其他自动化设备": {
+    "sectors": [
+      "机器人"
+    ],
+    "counts": {
+      "机器人": 5
+    },
+    "l1": "机械设备",
+    "l2": "自动化设备",
+    "stock_count": 25,
+    "classified_count": 5,
+    "notes": "",
+    "auto": true
+  },
+  "航天装备Ⅲ": {
+    "sectors": [],
+    "counts": {},
+    "l1": "国防军工",
+    "l2": "航天装备Ⅱ",
+    "stock_count": 9,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "航空装备Ⅲ": {
+    "sectors": [
+      "半导体材料"
+    ],
+    "counts": {
+      "半导体材料": 1
+    },
+    "l1": "国防军工",
+    "l2": "航空装备Ⅱ",
+    "stock_count": 45,
+    "classified_count": 1,
+    "notes": "",
+    "auto": true
+  },
+  "地面兵装Ⅲ": {
+    "sectors": [],
+    "counts": {},
+    "l1": "国防军工",
+    "l2": "地面兵装Ⅱ",
+    "stock_count": 12,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "航海装备Ⅲ": {
+    "sectors": [],
+    "counts": {},
+    "l1": "国防军工",
+    "l2": "航海装备Ⅱ",
+    "stock_count": 10,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "军工电子Ⅲ": {
+    "sectors": [
+      "特种集成电路",
+      "mlcc"
+    ],
+    "counts": {
+      "特种集成电路": 6,
+      "mlcc": 4
+    },
+    "l1": "国防军工",
+    "l2": "军工电子Ⅱ",
+    "stock_count": 62,
+    "classified_count": 10,
+    "notes": "",
+    "auto": true
+  },
+  "安防设备": {
+    "sectors": [],
+    "counts": {},
+    "l1": "计算机",
+    "l2": "计算机设备",
+    "stock_count": 24,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "其他计算机设备": {
+    "sectors": [
+      "物理AI",
+      "ai_server",
+      "storage",
+      "datacenter",
+      "liquid_cooling"
+    ],
+    "counts": {
+      "物理AI": 2,
+      "ai_server": 2,
+      "storage": 1,
+      "datacenter": 1,
+      "liquid_cooling": 1
+    },
+    "l1": "计算机",
+    "l2": "计算机设备",
+    "stock_count": 60,
+    "classified_count": 7,
+    "notes": "",
+    "auto": true
+  },
+  "IT服务Ⅲ": {
+    "sectors": [
+      "物理AI",
+      "datacenter",
+      "switch",
+      "ai_server"
+    ],
+    "counts": {
+      "物理AI": 3,
+      "datacenter": 3,
+      "switch": 1,
+      "ai_server": 1
+    },
+    "l1": "计算机",
+    "l2": "IT服务Ⅱ",
+    "stock_count": 119,
+    "classified_count": 8,
+    "notes": "",
+    "auto": true
+  },
+  "垂直应用软件": {
+    "sectors": [
+      "物理AI"
+    ],
+    "counts": {
+      "物理AI": 1
+    },
+    "l1": "计算机",
+    "l2": "软件开发",
+    "stock_count": 96,
+    "classified_count": 1,
+    "notes": "",
+    "auto": true
+  },
+  "横向通用软件": {
+    "sectors": [],
+    "counts": {},
+    "l1": "计算机",
+    "l2": "软件开发",
+    "stock_count": 35,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "电信运营商": {
+    "sectors": [],
+    "counts": {},
+    "l1": "通信",
+    "l2": "通信服务",
+    "stock_count": 3,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "通信工程及服务": {
+    "sectors": [],
+    "counts": {},
+    "l1": "通信",
+    "l2": "通信服务",
+    "stock_count": 18,
+    "classified_count": 0,
+    "notes": "",
+    "auto": true
+  },
+  "通信应用增值服务": {
+    "sectors": [
+      "datacenter"
+    ],
+    "counts": {
+      "datacenter": 4
+    },
+    "l1": "通信",
+    "l2": "通信服务",
+    "stock_count": 17,
+    "classified_count": 4,
+    "notes": "",
+    "auto": true
+  },
+  "通信网络设备及器件": {
+    "sectors": [
+      "optical_module",
+      "switch",
+      "optical_chip",
+      "datacenter",
+      "薄膜铌酸锂",
+      "CPO"
+    ],
+    "counts": {
+      "optical_module": 11,
+      "switch": 3,
+      "optical_chip": 3,
+      "薄膜铌酸锂": 1,
+      "datacenter": 2,
+      "CPO": 1
+    },
+    "l1": "通信",
+    "l2": "通信设备",
+    "stock_count": 35,
+    "classified_count": 21,
+    "notes": "",
+    "auto": true
+  },
+  "通信线缆及配套": {
+    "sectors": [
+      "optical_module"
+    ],
+    "counts": {
+      "optical_module": 1
+    },
+    "l1": "通信",
+    "l2": "通信设备",
+    "stock_count": 12,
+    "classified_count": 1,
+    "notes": "",
+    "auto": true
+  },
+  "通信终端及配件": {
+    "sectors": [
+      "特种集成电路",
+      "switch",
+      "optical_module",
+      "CPO"
+    ],
+    "counts": {
+      "特种集成电路": 3,
+      "switch": 1,
+      "optical_module": 1,
+      "CPO": 1
+    },
+    "l1": "通信",
+    "l2": "通信设备",
+    "stock_count": 27,
+    "classified_count": 6,
+    "notes": "",
+    "auto": true
+  },
+  "其他通信设备": {
+    "sectors": [
+      "datacenter",
+      "liquid_cooling"
+    ],
+    "counts": {
+      "datacenter": 1,
+      "liquid_cooling": 1
+    },
+    "l1": "通信",
+    "l2": "通信设备",
+    "stock_count": 11,
+    "classified_count": 2,
+    "notes": "",
+    "auto": true
+  }
+}
