@@ -2,7 +2,7 @@
   "metadata": {
     "version": "2.0.0",
     "description": "AI算力基础设施完整产业链生态",
-    "total_sectors": 16,
+    "total_sectors": 30,
     "supply_chain_levels": 4
   },
   "ccl": {
@@ -741,6 +741,54 @@
       "光引擎",
       "可插拔光模块",
       "光电互连"
+    ],
+    "technologies": []
+  },
+  "半导体设备": {
+    "name": "半导体设备",
+    "tier": 2,
+    "description": "刻蚀/薄膜沉积/CMP/离子注入/涂胶显影/清洗/量测检测/测试等半导体晶圆制造与封测设备",
+    "include_sectors": [
+      "半导体设备"
+    ],
+    "upstream": [],
+    "downstream": [],
+    "related": [],
+    "key_products": [
+      "刻蚀设备",
+      "薄膜沉积设备",
+      "CMP设备",
+      "离子注入设备",
+      "涂胶显影设备",
+      "清洗设备",
+      "量测检测设备",
+      "测试设备",
+      "光刻设备",
+      "热处理设备"
+    ],
+    "technologies": []
+  },
+  "特种集成电路": {
+    "name": "特种集成电路",
+    "tier": 2,
+    "description": "面向国防/工业/高可靠场景的特种IC：FPGA/特种存储/特种模拟/特种射频/智能安全芯片/特种SoC",
+    "include_sectors": [
+      "特种集成电路"
+    ],
+    "upstream": [],
+    "downstream": [],
+    "related": [],
+    "key_products": [
+      "特种FPGA",
+      "特种存储",
+      "特种模拟IC",
+      "特种射频芯片",
+      "T/R芯片",
+      "数据转换器",
+      "智能安全芯片",
+      "特种SoC",
+      "特种微处理器",
+      "嵌入式计算机"
     ],
     "technologies": []
   }

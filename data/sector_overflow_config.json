@@ -503,5 +503,57 @@
     "leaders": [],
     "second_tier": [],
     "tech_option_stocks": []
+  },
+  "半导体设备": {
+    "leaders": [
+      {
+        "code": "002371",
+        "name": "北方华创",
+        "symbol": "002371.SZ"
+      },
+      {
+        "code": "688012",
+        "name": "中微公司",
+        "symbol": "688012.SH"
+      },
+      {
+        "code": "688072",
+        "name": "拓荆科技",
+        "symbol": "688072.SH"
+      },
+      {
+        "code": "688120",
+        "name": "华海清科",
+        "symbol": "688120.SH"
+      },
+      {
+        "code": "688037",
+        "name": "芯源微",
+        "symbol": "688037.SH"
+      }
+    ],
+    "second_tier": [],
+    "tech_option_stocks": []
+  },
+  "特种集成电路": {
+    "leaders": [
+      {
+        "code": "002049",
+        "name": "紫光国微",
+        "symbol": "002049.SZ"
+      },
+      {
+        "code": "688385",
+        "name": "复旦微电",
+        "symbol": "688385.SH"
+      },
+      {
+        "code": "000733",
+        "name": "振华科技",
+        "symbol": "000733.SZ"
+      }
+    ],
+    "second_tier": [],
+    "tech_option_stocks": []
   }
 }
