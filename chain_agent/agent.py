@@ -51,6 +51,120 @@ def _get_sector_leaders(sector: str):
     return codes or None
 
 
+def _collected_from_gather(sd: dict) -> dict:
+    """把 sector_data.gather() 的 board_evidence 构建成 collect_all 兼容的 collected 结构。
+
+    供 llm_synthesize（读 demand/demand_secondary content_text）+ analyze_tech_options
+    （读 supply.results 的 title/content 做 substring 匹配）使用。T* -> supply，A* -> demand。
+    """
+    board_evi = sd.get("board_evidence") or []
+    t_entries = [e for e in board_evi if str(e.get("id", "")).startswith("T")]
+    a_entries = [e for e in board_evi if str(e.get("id", "")).startswith("A")]
+
+    def _text(entries):
+        return "\n".join(f"{e.get('title', '')} {e.get('snippet', '')}" for e in entries)
+
+    supply_results = [
+        {"title": e.get("title", ""), "content": e.get("snippet", ""), "url": e.get("url", "")}
+        for e in t_entries
+    ]
+    return {
+        "combined_text": _text(board_evi),
+        "supply": {"results": supply_results, "content_text": _text(t_entries), "answer": ""},
+        "demand": {"content_text": _text(a_entries), "news": a_entries},
+        "demand_secondary": {"content_text": _text(t_entries), "news": []},
+    }
+
+
+def _discovered_from_gather(sector: str, sd: dict, chain: dict) -> dict:
+    """把 gather() 的 candidate_pool 构建成 discover_candidates 兼容的 discovered 结构。
+
+    合并 overflow_config 龙头/二线/技术期权（in_pool/tier/role_hint/catalyst），
+    扫 board_evidence 算 news_hits。overflow_config 里 gather 池没有的龙头补进来。
+    """
+    from .discovery.stock_detector import StockDetector
+    from .discovery.candidates import _load_overflow_leaders
+
+    sector_u = config.to_under(sector)
+    detector = StockDetector()
+
+    # news_hits：扫 board_evidence 文本
+    hit_counts: dict = {}
+    for e in sd.get("board_evidence") or []:
+        for det in detector.detect_stocks_from_text(f"{e.get('title', '')} {e.get('snippet', '')}"):
+            hit_counts[det["code"]] = hit_counts.get(det["code"], 0) + 1
+
+    # overflow_config 龙头/二线/技术期权
+    overflow_cfg = _load_overflow_leaders()
+    sec_cfg = overflow_cfg.get(config.to_hyphen(sector_u), {}) or overflow_cfg.get(sector_u, {})
+    pool_stocks: dict = {}
+    for role_key in ("leaders", "second_tier", "tech_option_stocks"):
+        for s in sec_cfg.get(role_key, []):
+            code = str(s.get("code", ""))
+            if code and code not in pool_stocks:
+                pool_stocks[code] = {
+                    "tier": (chain.get("tier", 2) if chain else 2),
+                    "role_hint": role_key,
+                    "catalyst": s.get("catalyst", ""),
+                }
+
+    candidates = []
+    seen = set()
+    for c in sd.get("candidate_pool") or []:
+        code = c.get("code")
+        if not code or code in seen:
+            continue
+        seen.add(code)
+        pi = pool_stocks.pop(code, {})
+        candidates.append({
+            "code": code,
+            "name": c.get("name", ""),
+            "sector": sector_u,
+            "match_type": "sector_data",
+            "matched_keyword": c.get("segment_hint", ""),
+            "source": c.get("source", "sector_data"),
+            "news_hits": hit_counts.get(code, c.get("mention_count", 0)),
+            "news_importance_sum": 0,
+            "in_pool": bool(pi),
+            "tier": pi.get("tier", chain.get("tier", 2) if chain else 2),
+            "role_hint": pi.get("role_hint", ""),
+            "catalyst": pi.get("catalyst", ""),
+        })
+
+    # overflow_config 里 gather 池没有的，补进来（龙头必进）
+    try:
+        sl = json.loads(config.STOCK_LIST_JSON.read_text(encoding="utf-8"))
+        sl_stocks = sl.get("stocks", sl)
+    except Exception:
+        sl_stocks = {}
+    for code, pi in pool_stocks.items():
+        if code in seen:
+            continue
+        seen.add(code)
+        info = sl_stocks.get(code)
+        name = info.get("name", "") if isinstance(info, dict) else ""
+        candidates.append({
+            "code": code, "name": name, "sector": sector_u,
+            "match_type": "overflow_config", "matched_keyword": "",
+            "source": "overflow_config",
+            "news_hits": hit_counts.get(code, 0),
+            "news_importance_sum": 0, "in_pool": True,
+            "tier": pi.get("tier", 2),
+            "role_hint": pi.get("role_hint", ""), "catalyst": pi.get("catalyst", ""),
+        })
+
+    return {
+        "sector": sector_u,
+        "candidates": candidates,
+        "stats": {
+            "total": len(candidates),
+            "from_news": sum(1 for c in candidates if c["source"] != "overflow_config"),
+            "from_pool": sum(1 for c in candidates if c["in_pool"]),
+            "new_discoveries": sum(1 for c in candidates if c["source"] in ("discovered", "cailianshe_hot", "archive")),
+        },
+    }
+
+
 def run_pipeline(sector: str, days: int = 7, tavily_results: int = 10) -> dict:
     """运行完整的 6 层 pipeline（不含 LLM）"""
     print(f"[1/6] 展开产业链: {sector}", file=sys.stderr)
@@ -58,14 +172,13 @@ def run_pipeline(sector: str, days: int = 7, tavily_results: int = 10) -> dict:
     if chain.get("error"):
         raise RuntimeError(f"产业链展开失败: {chain['error']}")
 
-    leaders = _get_sector_leaders(sector)
-    print(f"[2/6] 双轨采集 (Tavily + akshare, days={days}, leaders={leaders})", file=sys.stderr)
-    collected = collectors.collect_all(
-        sector, days=days, tavily_results=tavily_results, leader_codes=leaders
-    )
+    print(f"[2/6] 共享板块数据层 gather (关键词+核心公司+搜索+行情)", file=sys.stderr)
+    from . import sector_data
+    sd = sector_data.gather(sector, days=days, top_n=15)
+    collected = _collected_from_gather(sd)  # collect_all 兼容（供 llm_synthesize + tech_option pool）
 
-    print(f"[3/6] 动态发现候选标的", file=sys.stderr)
-    discovered = discovery.discover_candidates(sector, collected, chain)
+    print(f"[3/6] 候选池构建 (gather 共享层 + overflow_config 龙头)", file=sys.stderr)
+    discovered = _discovered_from_gather(sector, sd, chain)
 
     print(f"[4/6] 候选股深度数据 enrich (资金面/龙虎榜/研报/解禁/热点题材)", file=sys.stderr)
     from .collectors import stock_data
