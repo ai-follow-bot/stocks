@@ -524,13 +524,15 @@ def score_candidates(chain_data: dict, bottleneck_data: dict,
                      search_results: dict, top_n: int,
                      force_include_codes: Optional[List[str]] = None,
                      force_include_segment: Optional[str] = None,
-                     quotes: Optional[Dict[str, dict]] = None) -> Optional[dict]:
+                     quotes: Optional[Dict[str, dict]] = None,
+                     base_pool: Optional[List[dict]] = None) -> Optional[dict]:
     """对候选标的做三维评分。
 
     候选池来源：
-    1. force_include_codes（stock 模式强制塞入目标股，优先级最高）
-    2. 拆解阶段 LLM 给出的 cn_leaders
-    3. 各环节搜索文本中反向捞到的 6 位 A 股代码
+    0. force_include_codes（stock 模式强制塞入目标股，优先级最高）
+    0.5. base_pool（共享板块数据层 gather() 的统一候选基座，chain 模式）
+    1. 拆解阶段 LLM 给出的 cn_leaders
+    2. 各环节搜索文本中反向捞到的 6 位 A 股代码
     排序后截断到 top_n*2，再注入 PE/市值/涨跌幅喂给 LLM。
     """
     candidates = []
@@ -557,6 +559,20 @@ def score_candidates(chain_data: dict, bottleneck_data: dict,
             "segment": force_include_segment or "",
             "role": "",
             "source": "force_include",
+        })
+
+    # 来源 0.5：共享板块数据层 base_pool（chain 模式统一候选基座，gather() 产出）
+    for c in (base_pool or []):
+        code = c.get("code")
+        if not code or code in seen_codes:
+            continue
+        seen_codes.add(code)
+        candidates.append({
+            "code": code,
+            "name": c.get("name", ""),
+            "segment": c.get("segment_hint", "") or "",
+            "role": "",
+            "source": "sector_data",
         })
 
     # 来源 1：拆解阶段 LLM 给出的 cn_leaders（每环节 3-5 家）
@@ -959,6 +975,12 @@ def analyze_chain(chain: str, days: int = 14, top_n: int = 8,
           f"{', force_include=' + str(force_include_codes) if force_include_codes else ''}) ===",
           file=sys.stderr)
 
+    # 共享板块数据层：统一候选基座 + 板块 evidence + 基础行情（chain 模式）
+    from chain_agent import sector_data
+    sd = sector_data.gather(chain, days=days, top_n=top_n)
+    base_pool = sd.get("candidate_pool") or []
+    quotes: Dict[str, dict] = dict(sd.get("data") or {})  # 共享层行情作 base
+
     chain_data = decompose_chain(chain)
     if not chain_data:
         return {"error": "产业链拆解失败（LLM 不可用或返回格式错误）", "chain": chain}
@@ -976,30 +998,29 @@ def analyze_chain(chain: str, days: int = 14, top_n: int = 8,
     print(f"[deep-analyze] 卡脖子环节: {bottleneck_data.get('top_bottlenecks', [])}",
           file=sys.stderr)
 
-    # 漏洞 5：评分前拉 PE/市值/涨跌幅注入候选
-    quotes: Dict[str, dict] = {}
+    # 补拉 base_pool 之外的候选行情（cn_leaders/force_include 可能不在 gather 池里）
     try:
         from chain_agent.scoring.quotes import get_quote_provider
-        # 先收集所有候选 code（在 score_candidates 内部构建），这里先拉一个粗略集合
-        # cn_leaders + force_include 即可覆盖主要候选
         candidate_codes = list(force_include_codes or [])
         for s in chain_data.get("segments", []):
             for name in s.get("cn_leaders", []):
                 resolved = _resolve_leader_code(name, segment_hint=s.get("name"))
                 if resolved:
                     candidate_codes.append(resolved["code"])
-        if candidate_codes:
-            candidate_codes = list(dict.fromkeys(candidate_codes))  # 去重保序
-            quotes = get_quote_provider().get_quotes(candidate_codes) or {}
-            print(f"[deep-analyze] 拉到 {len(quotes)} 只候选股的 PE/市值", file=sys.stderr)
+        missing = [c for c in dict.fromkeys(candidate_codes) if c not in quotes]
+        if missing:
+            extra = get_quote_provider().get_quotes(missing) or {}
+            quotes.update(extra)
+            print(f"[deep-analyze] 补拉 {len(extra)} 只候选股行情（base_pool 外）", file=sys.stderr)
     except Exception as e:
-        print(f"[deep-analyze] 拉行情失败（PE/市值将为 null）: {e}", file=sys.stderr)
+        print(f"[deep-analyze] 补拉行情失败（PE/市值将为 null）: {e}", file=sys.stderr)
 
     scoring_data = score_candidates(
         chain_data, bottleneck_data, search_results, top_n,
         force_include_codes=force_include_codes,
         force_include_segment=force_include_segment,
         quotes=quotes,
+        base_pool=base_pool,
     ) or {}
 
     # 跨 skill 档案写回（deep 维度积累，与 valuation-lens 互通）
