@@ -82,12 +82,24 @@ def _enrich_quotes(candidates: List[dict]) -> dict:
 
 
 def _run_chain_or_codes(chain_name: str, candidates: List[dict], days: int,
-                        top_n: int, sector: Optional[str] = None) -> dict:
-    """chain / codes 共用的估值 pipeline。sector 非 None 时跑完 upsert 知识档案。"""
+                        top_n: int, sector: Optional[str] = None,
+                        quotes_data: Optional[dict] = None) -> dict:
+    """chain / codes 共用的估值 pipeline。sector 非 None 时跑完 upsert 知识档案。
+
+    quotes_data 非 None 时用共享板块数据层的行情（跳过 _enrich_quotes 重复拉）。
+    """
     print(f"[valuation-lens] === {chain_name} | {len(candidates)} 只候选 "
           f"(days={days}, top_n={top_n}) ===", file=sys.stderr)
 
-    _enrich_quotes(candidates)
+    if quotes_data:
+        # 用共享板块数据层行情，不重复拉
+        for c in candidates:
+            q = quotes_data.get(c.get("code"), {}) or {}
+            c["pe"] = q.get("pe")
+            c["market_cap"] = q.get("market_cap")
+            c["change_pct"] = q.get("change_pct")
+    else:
+        _enrich_quotes(candidates)
 
     # 截断到 top_n*2：档案召回 + 财联社热门优先占约 2/3 槽位，其余按市值
     cap = max(top_n, min(len(candidates), top_n * 2))
@@ -139,12 +151,16 @@ def _run_chain_or_codes(chain_name: str, candidates: List[dict], days: int,
 
 
 def analyze_chain(chain: str, days: int = 14, top_n: int = 8) -> dict:
-    candidates = _candidates_from_discovery(chain, days=days)
+    # 走共享板块数据层：统一采集候选池 + 板块 evidence + 基础行情
+    from chain_agent import sector_data
+    sd = sector_data.gather(chain, days=days, top_n=top_n)
+    candidates = sd.get("candidate_pool") or []
     if not candidates:
         return {"error": f"板块 {chain} 自动发现候选失败（搜索无果或板块名无法识别）", "chain": chain}
-    chain_name = candidates[0].get("segment_hint") or chain
+    chain_name = sd.get("sector_name") or chain
     return _run_chain_or_codes(chain_name, candidates, days, top_n,
-                               sector=_canonical_sector_key(chain))
+                               sector=sd.get("canon") or _canonical_sector_key(chain),
+                               quotes_data=sd.get("data"))
 
 
 def analyze_codes(codes: List[str], days: int = 14, top_n: int = 8) -> dict:

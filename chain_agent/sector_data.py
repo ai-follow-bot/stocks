@@ -257,8 +257,8 @@ def gather(sector: str, days: int = 14, top_n: int = 8) -> dict:
         print(f"[sector_data] 相关性过滤剔除 {len(dropped)} 只其它板块股: {', '.join(dropped[:8])}",
               file=sys.stderr)
 
-    # 6. 截断到 top_n×3（给三路径足够候选，各路径再各自截断）
-    pool = filtered[: max(top_n * 3, 20)]
+    # 6. 不截断：返回全量过滤后的候选池，由各路径按自己的策略截断
+    pool = filtered
 
     # 7. 基础行情
     codes = [c["code"] for c in pool if c.get("code")]
