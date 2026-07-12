@@ -6,6 +6,7 @@ Layer 3: 股票检测器（重写）
 """
 
 import json
+import os
 import re
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -59,10 +60,10 @@ SECTOR_KEYWORDS = _load_sector_keywords()
 
 
 def reload_keywords() -> Dict[str, List[str]]:
-    """重新加载 JSON 关键词（后台修改后调用，刷新模块级 SECTOR_KEYWORDS 与 _CODE_TO_SECTOR）"""
-    global SECTOR_KEYWORDS, _CODE_TO_SECTOR
+    """重新加载 JSON 关键词（后台修改后调用，刷新模块级 SECTOR_KEYWORDS 与 _CODE_TO_SECTORS）"""
+    global SECTOR_KEYWORDS, _CODE_TO_SECTORS
     SECTOR_KEYWORDS = _load_sector_keywords()
-    _CODE_TO_SECTOR = _load_code_sector_index()
+    _CODE_TO_SECTORS = _load_code_sectors_index()
     return SECTOR_KEYWORDS
 
 
@@ -125,18 +126,26 @@ CORE_SECTOR_STOCKS = {
 }
 
 
-def _load_code_sector_index() -> Dict[str, str]:
-    """构建 code->sector 反查表，供 _determine_sector 判定板块归属。
+def _load_code_sectors_index() -> Dict[str, List[str]]:
+    """构建 code->List[sector] 多标签反查表，供 determine_sectors 判定板块归属。
 
-    合并：硬编码 CORE_SECTOR_STOCKS（7 板块兜底）+ sector_keywords.json 的
-    core_companies（全 28 板块）。core_companies 的 key 即 sector_ecosystem.json
-    的 canonical key（中英混合），与调用方（如 valuation-lens 过滤对比 canon）同空间，
-    故直接作返回值。缺失/出错回退到硬编码。
+    合并三个来源（去重保序，core_companies 优先）：
+    1. sector_keywords.json 的 core_companies（全 28+ 板块，手填高置信；一code可跨多板）
+    2. 硬编码 CORE_SECTOR_STOCKS（7 板块兜底）
+    3. data/stock_classification.json（LLM 全市场多标签分类，按 confidence 阈值过滤）
+
+    返回的 sector key 即 sector_ecosystem.json 的 canonical key（中英混合），与调用方
+    （如 valuation-lens 过滤对比 canon）同空间。缺失/出错回退到前两源。
     """
-    idx: Dict[str, str] = {}
-    for sec, codes in CORE_SECTOR_STOCKS.items():
-        for c in codes:
-            idx.setdefault(c, sec)
+    idx: Dict[str, List[str]] = {}
+
+    def _add(code, sector):
+        if code and sector:
+            lst = idx.setdefault(code, [])
+            if sector not in lst:
+                lst.append(sector)
+
+    # 1. core_companies（全板块，手填）
     try:
         if KEYWORDS_JSON.exists():
             data = json.loads(KEYWORDS_JSON.read_text(encoding="utf-8"))
@@ -146,16 +155,34 @@ def _load_code_sector_index() -> Dict[str, str]:
                     continue
                 for comp in companies:
                     if isinstance(comp, dict):
-                        code = comp.get("code")
-                        if code:
-                            idx.setdefault(code, sec)  # 硬编码优先，core_companies 补全
+                        _add(comp.get("code"), sec)
     except Exception as e:
-        print(f"[stock_detector] 合并 core_companies 到归属索引失败，仅用硬编码: {e}")
+        print(f"[stock_detector] 加载 core_companies 到多标签索引失败: {e}", file=sys.stderr)
+    # 2. 硬编码兜底
+    for sec, codes in CORE_SECTOR_STOCKS.items():
+        for c in codes:
+            _add(c, sec)
+    # 3. LLM stock_classification.json（多标签，按 confidence 过滤）
+    conf_th = float(os.environ.get("CLASSIFY_CONF_THRESHOLD", "0.5"))
+    try:
+        cj = config.DATA_DIR / "stock_classification.json"
+        if cj.exists():
+            data = json.loads(cj.read_text(encoding="utf-8"))
+            stocks = data.get("stocks", {}) if isinstance(data, dict) else {}
+            for code, rec in stocks.items():
+                if not isinstance(rec, dict):
+                    continue
+                for s in rec.get("sectors", []) or []:
+                    if isinstance(s, dict) and s.get("sector"):
+                        if float(s.get("confidence", 0.5) or 0.5) >= conf_th:
+                            _add(code, s["sector"])
+    except Exception as e:
+        print(f"[stock_detector] 加载 stock_classification.json 到多标签索引失败: {e}", file=sys.stderr)
     return idx
 
 
 # 模块加载时初始化（reload_keywords() 一并刷新）
-_CODE_TO_SECTOR: Dict[str, str] = _load_code_sector_index()
+_CODE_TO_SECTORS: Dict[str, List[str]] = _load_code_sectors_index()
 
 
 # 6 位数字代码合法范围校验（A 股规则）
@@ -251,9 +278,18 @@ class StockDetector:
 
         return detected
 
+    def determine_sectors(self, code: str) -> List[str]:
+        """多标签板块归属：一只股票可属多个板块（按核心产品/产线）。
+
+        供 valuation-lens 相关性过滤等判断「该股是否可能属于本板块」--只要 canon 在
+        返回列表里就应保留，避免跨板标的（如华海清科同属 HBM+半导体设备）被误剔。
+        """
+        return list(_CODE_TO_SECTORS.get(code, []))
+
     def _determine_sector(self, code: str) -> Optional[str]:
-        """根据代码确定板块归属（code->sector 反查，覆盖 core_companies 全 28 板块）"""
-        return _CODE_TO_SECTOR.get(code)
+        """单标签兼容：返回主归属（首个）。新代码用 determine_sectors 取多标签。"""
+        secs = _CODE_TO_SECTORS.get(code)
+        return secs[0] if secs else None
 
     def get_sector_by_text(self, text: str) -> Optional[str]:
         """根据文本关键词判断板块"""

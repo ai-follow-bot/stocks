@@ -179,18 +179,19 @@ def _candidates_from_discovery(sector: str, days: int = 14) -> List[dict]:
     print(f"[valuation-lens] 自动发现 {len(seen)} 只候选（板块={sec_name}，"
           f"核心公司 {n_core}，财联社热门 {len(cls_hot)}，档案召回 {n_arc}）", file=sys.stderr)
 
-    # 相关性过滤：剔掉归属「其它已知板块」的候选（防跑偏，如 半导体材料 里混入存储/服务器股）。
-    # 保留：core_companies（本板块核心公司）+ _determine_sector 为 None（未归类的潜在本板块股）
-    #       + 归属本板块(canon)的。剔除：_determine_sector 返回其它已知板块的（storage/ai_server 等）。
+    # 相关性过滤（多标签）：剔掉「归属已知板块且不含本板块」的候选（防跑偏，如 半导体材料 里混入存储/服务器股）。
+    # 保留：core_companies（本板块核心公司）+ determine_sectors 为空（未归类的潜在本板块股）
+    #       + determine_sectors 含 canon 的（跨板标的，如华海清科同属 HBM+半导体设备，两板都保留）。
+    # 剔除：determine_sectors 非空且 canon 不在其中（明确归到其它板块的）。
     core_codes = {c.get("code") for c in load_core_companies(sector)}
     filtered, dropped = [], []
     for c in seen.values():
         code = c.get("code")
         if code in core_codes:
             filtered.append(c); continue
-        det_sec = detector._determine_sector(code) if code else None
-        if det_sec and det_sec != canon:
-            dropped.append(f"{c.get('name','')}({det_sec})")
+        det_sectors = detector.determine_sectors(code) if code else []
+        if det_sectors and canon not in det_sectors:
+            dropped.append(f"{c.get('name','')}({','.join(det_sectors[:2])})")
         else:
             filtered.append(c)
     if dropped:
