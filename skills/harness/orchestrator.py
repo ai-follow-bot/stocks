@@ -117,7 +117,7 @@ def _extract_bottlenecks(deep_raw: dict) -> dict:
 
 
 def run_harness_chain(sector: str, days: int = 14, top_n: int = 8, timeout: int = None) -> dict:
-    print(f"[harness] === chain {sector} | 三路径并发 (days={days}, top_n={top_n}) ===", file=sys.stderr)
+    print(f"[harness] === chain {sector} | 四视角并发 (days={days}, top_n={top_n}) ===", file=sys.stderr)
     paths = [
         ("chain", "chain_agent.agent", [sector, "--days", str(days), "--top-n", str(top_n)],
          _path_timeout("chain", 600, timeout)),
@@ -125,6 +125,8 @@ def run_harness_chain(sector: str, days: int = 14, top_n: int = 8, timeout: int 
          _path_timeout("deep", 1600, timeout)),
         ("val", "skills.valuation-lens", ["--chain", sector, "--days", str(days), "--top-n", str(top_n)],
          _path_timeout("val", 1200, timeout)),
+        ("cycle", "skills.cycle-lens", ["--chain", sector, "--days", str(days), "--top-n", str(top_n)],
+         _path_timeout("cycle", 1200, timeout)),
     ]
     raw = _run_paths(paths)
     for k, v in raw.items():

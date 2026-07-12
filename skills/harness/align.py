@@ -81,6 +81,32 @@ def _extract_val(raw: dict) -> dict:
     return out
 
 
+def _extract_cycle(raw: dict) -> dict:
+    """cycle-lens: results[] -> {code: {name, classification, eps_at_peak, pe_percentile, verdict}}"""
+    if "error" in raw:
+        return {}
+    results = raw.get("results") or []
+    if not results:
+        r = raw.get("result")
+        if r:
+            results = [r]
+    out = {}
+    for r in results:
+        code = r.get("code")
+        if not code:
+            continue
+        decomp = r.get("decomp") or {}
+        llm = r.get("llm_judgment") or {}
+        out[code] = {
+            "name": r.get("name", ""),
+            "classification": decomp.get("classification"),
+            "eps_at_peak": decomp.get("eps_at_peak"),
+            "pe_percentile": decomp.get("pe_percentile"),
+            "verdict": llm.get("verdict", ""),
+        }
+    return out
+
+
 def _consistency(scores: list) -> dict:
     """三路径总分（均 0-100）一致性标注。"""
     rng = max(scores) - min(scores)
@@ -114,18 +140,20 @@ def align_chain_results(raw: dict) -> list:
     chain = _extract_chain(raw.get("chain", {}))
     deep = _extract_deep(raw.get("deep", {}))
     val = _extract_val(raw.get("val", {}))
-    codes = set(chain) | set(deep) | set(val)
+    cycle = _extract_cycle(raw.get("cycle", {}))
+    codes = set(chain) | set(deep) | set(val) | set(cycle)
     out = []
     for code in codes:
         entry = {
             "code": code,
             "name": (chain.get(code, {}).get("name") or deep.get(code, {}).get("name")
-                     or val.get(code, {}).get("name", "")),
+                     or val.get(code, {}).get("name") or cycle.get(code, {}).get("name", "")),
             "chain": chain.get(code),
             "deep": deep.get(code),
             "val": val.get(code),
+            "cycle": cycle.get(code),
         }
-        entry["coverage"] = [k for k in ("chain", "deep", "val") if entry[k]]
+        entry["coverage"] = [k for k in ("chain", "deep", "val", "cycle") if entry[k]]
         scores = [s for s in (_entry_score(entry, k) for k in ("chain", "deep", "val"))
                   if isinstance(s, (int, float))]
         entry["consistency"] = _consistency(scores) if len(scores) >= 2 else {"label": "仅单路径", "range": None}
@@ -160,14 +188,16 @@ def align_stock_results(raw: dict) -> list:
 def render_aligned_text(aligned: list, mode: str = "chain") -> str:
     """对齐表文本（供 LLM 输入）。"""
     if mode == "chain":
-        lines = ["| 代码 | 名称 | chain | deep | val | 一致性 |",
-                 "|------|------|-------|------|-----|--------|"]
+        lines = ["| 代码 | 名称 | chain | deep | val | cycle | 一致性 |",
+                 "|------|------|-------|------|-----|-------|--------|"]
         for e in aligned:
             c = e.get("chain") or {}
             d = e.get("deep") or {}
             v = e.get("val") or {}
+            cy = e.get("cycle") or {}
             lines.append(f"| {e['code']} | {e['name']} | {c.get('score','-')}({c.get('role','-')}) | "
                          f"{d.get('total','-')} | {v.get('score','-')}({v.get('role','-')}) | "
+                         f"{cy.get('classification','-')}({cy.get('eps_at_peak','-')}) | "
                          f"{e['consistency']['label']} |")
     else:
         lines = ["| 代码 | 名称 | deep | val | 一致性 |",
