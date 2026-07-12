@@ -13,8 +13,9 @@ from typing import Dict, List, Optional
 
 from chain_agent import config
 from chain_agent.collectors import search_cache
-from chain_agent.collectors.orchestrator import _get_search_provider
+from chain_agent.collectors.orchestrator import _get_search_provider, _search_failed
 from chain_agent.collectors.snippet import snippet as _snippet
+from chain_agent.collectors.zhipu_search import ZhipuSearch
 from chain_agent.knowledge.archive import load_archive as _load_archive
 
 from .archive import (
@@ -291,33 +292,41 @@ def _valuation_search(provider, provider_name: Optional[str],
         }
         for prefix, q in queries.items():
             r = search_cache.get_cached(q)
+            src = provider_name
             if not r and provider:
                 try:
                     r = provider.search_with_ai_summary(q, max_results=5)
-                except Exception as e:
-                    print(f"[valuation-lens] 搜索失败 ({q[:40]}): {e}", file=sys.stderr)
-                if r and (r.get("results") or r.get("answer")):
-                    search_cache.set_cached(q, r)
-            if not r:
+                except Exception:
+                    r = None
+                # Tavily 失败 -> 切智谱兜底
+                if (r is None or _search_failed(r)) and src == "tavily" and config.ZHIPU_API_KEY:
+                    try:
+                        r = ZhipuSearch().search_with_ai_summary(q, max_results=5)
+                        src = "zhipu"
+                    except Exception as e:
+                        print(f"[valuation-lens] 智谱兜底失败 ({q[:40]}): {e}", file=sys.stderr)
+            if not r or _search_failed(r):
                 continue
+            if r.get("results") or r.get("answer"):
+                search_cache.set_cached(q, r)
             idx = 0
             if r.get("answer"):
                 idx += 1
                 eid = f"{prefix}{idx}"
                 ans = r["answer"][:400]
                 evidence[eid] = {"title": f"[AI摘要] {q}", "content": ans,
-                                 "source": provider_name or "web", "url": ""}
+                                 "source": src or "web", "url": ""}
                 chunks.append(f"[{eid}] AI摘要 | {ans}")
-                new_pool[prefix].append({"text": ans, "source": "tavily_ai", "collected_at": now_iso})
+                new_pool[prefix].append({"text": ans, "source": f"{src}_ai", "collected_at": now_iso})
             for res in r.get("results", [])[:3]:
                 idx += 1
                 eid = f"{prefix}{idx}"
                 title = res.get("title", "")
                 content = _snippet(res.get("content") or "")
                 evidence[eid] = {"title": title, "content": content,
-                                 "source": provider_name or "web", "url": res.get("url", "")}
+                                 "source": src or "web", "url": res.get("url", "")}
                 chunks.append(f"[{eid}] {title} | {content}")
-                new_pool[prefix].append({"text": f"{title} | {content}", "source": "tavily",
+                new_pool[prefix].append({"text": f"{title} | {content}", "source": src,
                                          "collected_at": now_iso})
 
     # 始终拉财联社 per-stock 实时新闻，追加为 D 证据（标"新增"= publish_time 晚于上次 last_run）
