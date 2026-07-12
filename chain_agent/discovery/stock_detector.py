@@ -59,9 +59,10 @@ SECTOR_KEYWORDS = _load_sector_keywords()
 
 
 def reload_keywords() -> Dict[str, List[str]]:
-    """重新加载 JSON 关键词（后台修改后调用，刷新模块级 SECTOR_KEYWORDS）"""
-    global SECTOR_KEYWORDS
+    """重新加载 JSON 关键词（后台修改后调用，刷新模块级 SECTOR_KEYWORDS 与 _CODE_TO_SECTOR）"""
+    global SECTOR_KEYWORDS, _CODE_TO_SECTOR
     SECTOR_KEYWORDS = _load_sector_keywords()
+    _CODE_TO_SECTOR = _load_code_sector_index()
     return SECTOR_KEYWORDS
 
 
@@ -122,6 +123,39 @@ CORE_SECTOR_STOCKS = {
     "liquid_cooling": ["300499", "002837", "301018", "300990", "603912"],
     "mlcc": ["300408", "000636", "603678", "603267", "002859", "300285", "301511"],
 }
+
+
+def _load_code_sector_index() -> Dict[str, str]:
+    """构建 code->sector 反查表，供 _determine_sector 判定板块归属。
+
+    合并：硬编码 CORE_SECTOR_STOCKS（7 板块兜底）+ sector_keywords.json 的
+    core_companies（全 28 板块）。core_companies 的 key 即 sector_ecosystem.json
+    的 canonical key（中英混合），与调用方（如 valuation-lens 过滤对比 canon）同空间，
+    故直接作返回值。缺失/出错回退到硬编码。
+    """
+    idx: Dict[str, str] = {}
+    for sec, codes in CORE_SECTOR_STOCKS.items():
+        for c in codes:
+            idx.setdefault(c, sec)
+    try:
+        if KEYWORDS_JSON.exists():
+            data = json.loads(KEYWORDS_JSON.read_text(encoding="utf-8"))
+            cc = data.get("core_companies", {}) if isinstance(data, dict) else {}
+            for sec, companies in cc.items():
+                if not isinstance(companies, list):
+                    continue
+                for comp in companies:
+                    if isinstance(comp, dict):
+                        code = comp.get("code")
+                        if code:
+                            idx.setdefault(code, sec)  # 硬编码优先，core_companies 补全
+    except Exception as e:
+        print(f"[stock_detector] 合并 core_companies 到归属索引失败，仅用硬编码: {e}")
+    return idx
+
+
+# 模块加载时初始化（reload_keywords() 一并刷新）
+_CODE_TO_SECTOR: Dict[str, str] = _load_code_sector_index()
 
 
 # 6 位数字代码合法范围校验（A 股规则）
@@ -218,11 +252,8 @@ class StockDetector:
         return detected
 
     def _determine_sector(self, code: str) -> Optional[str]:
-        """根据代码确定板块归属"""
-        for sector, codes in CORE_SECTOR_STOCKS.items():
-            if code in codes:
-                return sector
-        return None
+        """根据代码确定板块归属（code->sector 反查，覆盖 core_companies 全 28 板块）"""
+        return _CODE_TO_SECTOR.get(code)
 
     def get_sector_by_text(self, text: str) -> Optional[str]:
         """根据文本关键词判断板块"""
