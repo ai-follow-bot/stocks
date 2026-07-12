@@ -65,10 +65,11 @@ def _sector_meta(canon: str) -> Tuple[str, List[str]]:
 
 
 # ---------- 板块搜索（Tavily/Zhipu） -> board_evidence + 发现候选 ----------
-def _board_search(sec_name: str, kps: List[str], max_results: int = 8) -> Tuple[List[dict], List[dict]]:
+def _board_search(sec_name: str, kps: List[str], keywords: List[str], max_results: int = 8) -> Tuple[List[dict], List[dict]]:
     """板块级搜索：返回 (evidence[T1..], detected_stocks)。
 
     evidence 每条 {id, source, title, snippet, url}，snippet 用共享 snippet() 锚定。
+    query 同时用 key_products + keywords 提升召回。
     """
     from chain_agent.collectors.orchestrator import _get_search_provider, _search_failed
     from chain_agent.collectors import search_cache
@@ -76,7 +77,9 @@ def _board_search(sec_name: str, kps: List[str], max_results: int = 8) -> Tuple[
     from chain_agent.collectors.zhipu_search import ZhipuSearch
     from chain_agent.discovery.stock_detector import StockDetector
 
-    kw_tail = " ".join(kps[:3])
+    # key_products 优先 + 关键词补充，都进 query
+    terms = list(dict.fromkeys((kps or [])[:3] + (keywords or [])[:3]))
+    kw_tail = " ".join(terms)
     queries = [
         f"{sec_name} 产业链 龙头 上市公司 A股 细分环节 {kw_tail} 2026".strip(),
         f"{sec_name} 玩家 市占率 卡脖子 国产替代 {kw_tail} 2026".strip(),
@@ -134,10 +137,11 @@ def _board_search(sec_name: str, kps: List[str], max_results: int = 8) -> Tuple[
 
 
 # ---------- 财联社热度 -> A* evidence + 候选 ----------
-def _cailianshe_hot(sec_name: str, kps: List[str], days: int = 14) -> Tuple[List[dict], List[dict]]:
+def _cailianshe_hot(sec_name: str, kps: List[str], keywords: List[str], days: int = 14) -> Tuple[List[dict], List[dict]]:
     """hermes latest_news.json + StockDetector。返回 (evidence[A1..], candidates)。
 
     candidates: [{code, name, source='cailianshe_hot', segment_hint, mention_count}]，按热度降序。
+    过滤词用 key_products + keywords（都作命中词）。
     """
     from chain_agent.discovery.stock_detector import StockDetector
 
@@ -150,7 +154,7 @@ def _cailianshe_hot(sec_name: str, kps: List[str], days: int = 14) -> Tuple[List
         return [], []
 
     cutoff = datetime.now() - timedelta(days=days)
-    kws = [sec_name] + [k for k in (kps or []) if k]
+    kws = [sec_name] + list(dict.fromkeys((kps or []) + (keywords or [])))
     detector = StockDetector()
     mention: Counter = Counter()
     names: Dict[str, str] = {}
@@ -225,10 +229,10 @@ def gather(sector: str, days: int = 14, top_n: int = 8) -> dict:
 
     detector = StockDetector()
 
-    # 1. 板块搜索
-    board_evi, board_detected = _board_search(sec_name, kps)
-    # 2. 财联社热度
-    cls_evi, cls_cands = _cailianshe_hot(sec_name, kps, days=days)
+    # 1. 板块搜索（key_products + keywords 都进 query，提升召回）
+    board_evi, board_detected = _board_search(sec_name, kps, keywords)
+    # 2. 财联社热度（key_products + keywords 都作过滤词）
+    cls_evi, cls_cands = _cailianshe_hot(sec_name, kps, keywords, days=days)
     # 3. 档案召回
     arc_cands = _recall_archive(canon)
 

@@ -188,7 +188,8 @@ def _slim_candidate(c: dict) -> dict:
 
 def score_valuations(chain_name: str, candidates: List[dict],
                      evidence_map: Dict[str, dict],
-                     sector_prior: Optional[str] = None) -> dict:
+                     sector_prior: Optional[str] = None,
+                     sector_keywords: Optional[str] = None) -> dict:
     """对候选做 LLM 三维打分，返回 {candidates, supply_demand_analysis?}。"""
     if not candidates:
         return {"candidates": [], "note": "no candidates"}
@@ -234,11 +235,14 @@ def score_valuations(chain_name: str, candidates: List[dict],
         slim = [_slim_candidate(c) for c in batch]
         sp = (f"\n# 板块历史认知（档案上次供需概要，供参考，须用本次 evidence 增量更新）\n{sector_prior}\n"
               if sector_prior else "")
+        sk = (f"\n# 板块关键词（锚定板块边界，识别跑偏）\n{sector_keywords}\n"
+              if sector_keywords else "")
         user = prompts.VALUATION_USER_TEMPLATE.format(
             chain_name=chain_name,
             candidates=json.dumps(slim, ensure_ascii=False, indent=2),
             evidence_text=evidence_text[:24000],
             sector_prior=sp,
+            sector_keywords=sk,
         )
         meta = _llm_call_meta(prompts.VALUATION_SYSTEM, user)
         text = meta.get("text") or ""

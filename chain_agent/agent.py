@@ -209,6 +209,7 @@ def run_pipeline(sector: str, days: int = 7, tavily_results: int = 10) -> dict:
         "run_time": datetime.now().isoformat(),
         "days": days,
         "chain": chain,
+        "keywords": sd.get("keywords", []),
         "collected": collected,
         "discovered_stats": discovered["stats"],
         "scored": scored,
@@ -396,6 +397,7 @@ def llm_synthesize(result: dict, top_n: int = 15) -> str:
 
     user_prompt = SYNTHESIS_USER_TEMPLATE.format(
         sector_name=chain.get("focus_name", result["sector"]),
+        sector_keywords=", ".join(result.get("keywords", [])) or "(无)",
         chain_text=chain_graph.render_chain_text(chain)[:3000],
         tavily_answer=tavily_answer,
         tavily_count=tavily_count,

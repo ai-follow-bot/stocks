@@ -75,6 +75,9 @@ SYNTHESIS_USER_TEMPLATE = """# 任务
 # 产业链结构
 {chain_text}
 
+# 板块关键词（板块聚焦词，分析时锚定板块边界、识别跑偏）
+{sector_keywords}
+
 # 双轨采集数据
 ## 供给侧（Tavily AI 深度搜索）
 - AI 摘要: {tavily_answer}

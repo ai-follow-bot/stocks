@@ -83,7 +83,8 @@ def _enrich_quotes(candidates: List[dict]) -> dict:
 
 def _run_chain_or_codes(chain_name: str, candidates: List[dict], days: int,
                         top_n: int, sector: Optional[str] = None,
-                        quotes_data: Optional[dict] = None) -> dict:
+                        quotes_data: Optional[dict] = None,
+                        sector_keywords: Optional[str] = None) -> dict:
     """chain / codes 共用的估值 pipeline。sector 非 None 时跑完 upsert 知识档案。
 
     quotes_data 非 None 时用共享板块数据层的行情（跳过 _enrich_quotes 重复拉）。
@@ -123,7 +124,8 @@ def _run_chain_or_codes(chain_name: str, candidates: List[dict], days: int,
     all_failed = all(not (v.get("evidence") or {}) for v in evidence_map.values())
 
     sector_prior = _get_sector_prior(sector) if sector else None
-    scoring = score_valuations(chain_name, candidates, evidence_map, sector_prior=sector_prior)
+    scoring = score_valuations(chain_name, candidates, evidence_map,
+                               sector_prior=sector_prior, sector_keywords=sector_keywords)
     llm_failed = scoring.get("llm_failed_count") or 0
     data_quality = "degraded" if (all_failed or llm_failed) else "ok"
     if sector:
@@ -160,7 +162,8 @@ def analyze_chain(chain: str, days: int = 14, top_n: int = 8) -> dict:
     chain_name = sd.get("sector_name") or chain
     return _run_chain_or_codes(chain_name, candidates, days, top_n,
                                sector=sd.get("canon") or _canonical_sector_key(chain),
-                               quotes_data=sd.get("data"))
+                               quotes_data=sd.get("data"),
+                               sector_keywords=", ".join(sd.get("keywords", [])) or None)
 
 
 def analyze_codes(codes: List[str], days: int = 14, top_n: int = 8) -> dict:
@@ -218,7 +221,8 @@ def analyze_stock(stock_input: str, days: int = 14) -> dict:
     evidence_map = search_all_candidates(candidates, days=days, use_archive=True)
     canon = _canonical_sector_key(chain_name) if chain_name else ""
     sector_prior = _get_sector_prior(canon) if canon else None
-    scoring = score_valuations(chain_name, candidates, evidence_map, sector_prior=sector_prior)
+    scoring = score_valuations(chain_name, candidates, evidence_map,
+                               sector_prior=sector_prior, sector_keywords=sector_keywords)
     single = (scoring.get("candidates") or [{}])[0]
     # 始终写 per-stock 档案：canon 匹配 ecosystem 用标准 key，否则标 "unclassified"
     # （ecosystem 外的股仍积累 evidence/prev_score 享 24h 复用 + 走势；unclassified 不在 ecosystem，不进板块召回）
