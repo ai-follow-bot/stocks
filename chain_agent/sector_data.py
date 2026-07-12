@@ -70,9 +70,10 @@ def _board_search(sec_name: str, kps: List[str], max_results: int = 8) -> Tuple[
 
     evidence 每条 {id, source, title, snippet, url}，snippet 用共享 snippet() 锚定。
     """
-    from chain_agent.collectors.orchestrator import _get_search_provider
+    from chain_agent.collectors.orchestrator import _get_search_provider, _search_failed
     from chain_agent.collectors import search_cache
     from chain_agent.collectors.snippet import snippet as _snippet
+    from chain_agent.collectors.zhipu_search import ZhipuSearch
     from chain_agent.discovery.stock_detector import StockDetector
 
     kw_tail = " ".join(kps[:3])
@@ -81,34 +82,47 @@ def _board_search(sec_name: str, kps: List[str], max_results: int = 8) -> Tuple[
         f"{sec_name} 玩家 市占率 卡脖子 国产替代 {kw_tail} 2026".strip(),
     ]
     provider, provider_name = _get_search_provider()
+    zhipu = None  # 懒构造智谱（Tavily 失败时启用）
     evidence: List[dict] = []
     detected: List[dict] = []
     detector = StockDetector()
     t_idx = 0
     for q in queries:
         r = search_cache.get_cached(q)
+        src = provider_name
         if not r and provider:
             try:
                 r = provider.search_with_ai_summary(q, max_results=max_results)
-            except Exception as e:
-                print(f"[sector_data] 板块搜索失败 ({q[:30]}): {e}", file=sys.stderr)
-                continue
-        if not r:
+            except Exception:
+                r = None
+            # Tavily 失败/无结果 -> 切智谱兜底
+            if (r is None or _search_failed(r)) and src == "tavily" and config.ZHIPU_API_KEY:
+                if zhipu is None:
+                    try:
+                        zhipu = ZhipuSearch()
+                    except Exception:
+                        zhipu = False
+                if zhipu:
+                    try:
+                        r = zhipu.search_with_ai_summary(q, max_results=max_results)
+                        src = "zhipu"
+                    except Exception as e:
+                        print(f"[sector_data] 智谱兜底失败 ({q[:30]}): {e}", file=sys.stderr)
+        if not r or _search_failed(r):
             continue
-        if r.get("results") or r.get("answer"):
-            search_cache.set_cached(q, r)
+        search_cache.set_cached(q, r)
         # answer 作为一个 evidence
         ans = r.get("answer") or ""
         if ans:
             t_idx += 1
-            evidence.append({"id": f"T{t_idx}", "source": provider_name or "web",
+            evidence.append({"id": f"T{t_idx}", "source": src or "web",
                              "title": f"{sec_name} 板块摘要", "snippet": _snippet(ans, 400),
                              "url": "", "publish_time": ""})
         for res in (r.get("results") or [])[:6]:
             t_idx += 1
             content = res.get("content") or ""
             evidence.append({
-                "id": f"T{t_idx}", "source": provider_name or "web",
+                "id": f"T{t_idx}", "source": src or "web",
                 "title": res.get("title", ""),
                 "snippet": _snippet(content, 500),
                 "url": res.get("url", ""),
