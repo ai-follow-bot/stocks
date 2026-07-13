@@ -1,6 +1,6 @@
 # SPEC: skills.report-judge（报告质量评判）
 
-> **状态**：已设计待开发（2026-07-12）。本 spec 自包含，新会话可直接据此实施。
+> **状态**：已实现（2026-07-13）。模块 `skills/report-judge/`（rubric/prompts/judge/archive/__main__）+ 后端 admin-stocks.ts 4 端点 + worker 自动触发 + 前端 StocksReports.vue。spec 留作设计归档。
 > **特性**：报告出完后异步调 LLM 用 rubric 评判，输出结构化质量分 + issues + 改进建议。不进 pipeline 主链路，不影响报告产出速度。为系统自改进闭环（出报告->评判->聚合->改模块）提供数据。
 
 ## 1. 目标
