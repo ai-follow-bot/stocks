@@ -93,6 +93,10 @@ LLM_MAX_TOKENS = int(os.environ.get("CHAIN_AGENT_LLM_MAX_TOKENS", "16384"))
 # 由各 skill 的路径墙钟上限（harness per-path timeout）兜底。
 LLM_REQUEST_TIMEOUT = float(os.environ.get("LLM_REQUEST_TIMEOUT", "600"))
 
+# 评判用低温度（默认 0.2）：评判是确定性任务，低温度降方差（同报告多次判分波动从 ±15 收窄）。
+# 报告生成不用此值（保留默认温度，允许 LLM 有分析发散）；仅 judge 传 temperature。
+JUDGE_TEMPERATURE = float(os.environ.get("JUDGE_TEMPERATURE", "0.2"))
+
 # kimi-k2.6 默认开启思考（reasoning_content），评分/JSON 场景下思考 token 吃光 max_tokens
 # 致答案截断 + 重试爆炸 + 超时。默认对 kimi 关闭思考（答案直出 content，快且完整）。
 # 设 KIMI_THINKING_ENABLED=1 可重新开启（如需深度推理场景）。

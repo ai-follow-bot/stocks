@@ -2,14 +2,15 @@
 valuation-lens skill CLI
 
 用法:
-  # chain 模式：从 overflow_config 取该板块候选，做稀缺/前瞻/供需估值排序
+  # chain 模式：自动发现候选（板块搜索 + StockDetector + 财联社热度 + 档案召回），
+  # 不读 sector_overflow_config.json、无需手填 leaders；做稀缺/前瞻/供需估值排序
   python -m skills.valuation-lens --chain optical-module
   python -m skills.valuation-lens --chain 光模块 --days 14 --top-n 8 --out report.md
 
   # codes 模式：显式代码列表
   python -m skills.valuation-lens --codes 300308,300502,688498 --out lens.md
 
-  # stock 模式：单股估值判断
+  # stock 模式：单股估值判断（仅 CLI；网站 valuation 任务只接 --chain，单股走 deep-analyze）
   python -m skills.valuation-lens --stock 300308
   python -m skills.valuation-lens --stock 中际旭创 --out verdict.md
 """
@@ -33,7 +34,7 @@ def main():
     )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--chain", type=str,
-                       help="产业链名（sector_overflow_config.json 的 key，连字符或下划线均可，如 optical-module / 光模块）")
+                       help="产业链名（sector_ecosystem.json 的 key 或中文名，连字符/下划线均可，如 optical-module / 光模块；候选自动发现，不读 overflow_config、无需手填 leaders）")
     group.add_argument("--codes", type=str, help="显式股票代码列表，逗号分隔（如 300308,300502）")
     group.add_argument("--stock", type=str, help="单只股票代码或公司名（如 300308 / 中际旭创）")
     parser.add_argument("--days", type=int, default=14, help="新闻回看窗口（默认 14 天）")

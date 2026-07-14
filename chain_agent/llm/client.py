@@ -17,19 +17,20 @@ from .. import config
 
 class LLMClient(ABC):
     @abstractmethod
-    def synthesize(self, system: str, user: str) -> str:
+    def synthesize(self, system: str, user: str, temperature: float = None) -> str:
         ...
 
-    def synthesize_with_meta(self, system: str, user: str) -> dict:
+    def synthesize_with_meta(self, system: str, user: str, temperature: float = None) -> dict:
         """返回 {"text": str, "stop_reason": str|None}。
         stop_reason 取值：
           - anthropic: "end_turn" | "max_tokens" | "stop_sequence" | ...
           - openai:    "stop" | "length" | "tool_calls" | ...
-          截断统一规整为 "max_tokens" 方便调用方判断。"""
-        text = self.synthesize(system, user)
+          截断统一规整为 "max_tokens" 方便调用方判断。
+        temperature: None=provider 默认；评判等确定性场景传低值（如 0.2）降方差。"""
+        text = self.synthesize(system, user, temperature=temperature)
         return {"text": text, "stop_reason": None}
 
-    def synthesize_messages_with_meta(self, system: str, messages: list) -> dict:
+    def synthesize_messages_with_meta(self, system: str, messages: list, temperature: float = None) -> dict:
         """多轮调用，用于 max_tokens 截断时续写拼接。
         messages 是完整的对话历史（含已生成的 assistant 轮）。
         默认实现退化为单轮：取最后一条 user 消息。
@@ -38,7 +39,7 @@ class LLMClient(ABC):
             (m["content"] for m in reversed(messages) if m.get("role") == "user"),
             "",
         )
-        return self.synthesize_with_meta(system, last_user)
+        return self.synthesize_with_meta(system, last_user, temperature=temperature)
 
 
 class AnthropicClient(LLMClient):
@@ -52,26 +53,29 @@ class AnthropicClient(LLMClient):
         self._client = Anthropic(api_key=config.ANTHROPIC_API_KEY, timeout=config.LLM_REQUEST_TIMEOUT)
         self._model = config.ANTHROPIC_MODEL
 
-    def synthesize(self, system: str, user: str) -> str:
-        return self.synthesize_with_meta(system, user)["text"] or ""
+    def synthesize(self, system: str, user: str, temperature: float = None) -> str:
+        return self.synthesize_with_meta(system, user, temperature=temperature)["text"] or ""
 
-    def synthesize_with_meta(self, system: str, user: str) -> dict:
-        return self._create(system, [{"role": "user", "content": user}])
+    def synthesize_with_meta(self, system: str, user: str, temperature: float = None) -> dict:
+        return self._create(system, [{"role": "user", "content": user}], temperature=temperature)
 
-    def synthesize_messages_with_meta(self, system: str, messages: list) -> dict:
-        return self._create(system, messages)
+    def synthesize_messages_with_meta(self, system: str, messages: list, temperature: float = None) -> dict:
+        return self._create(system, messages, temperature=temperature)
 
-    def _create(self, system: str, messages: list) -> dict:
-        resp = self._client.messages.create(
-            model=self._model,
-            max_tokens=config.LLM_MAX_TOKENS,
-            system=system,
-            messages=messages,
-        )
+    def _create(self, system: str, messages: list, temperature: float = None) -> dict:
+        kwargs: dict = {
+            "model": self._model,
+            "max_tokens": config.LLM_MAX_TOKENS,
+            "system": system,
+            "messages": messages,
+        }
+        if temperature is not None:
+            kwargs["temperature"] = temperature
+        resp = self._client.messages.create(**kwargs)
         text = resp.content[0].text if resp.content else ""
         stop = getattr(resp, "stop_reason", None)
         if stop == "max_tokens":
-            print(f"[LLM] ⚠️ Anthropic 响应被 max_tokens={config.LLM_MAX_TOKENS} 截断",
+            print(f"[LLM] [截断] Anthropic 响应被 max_tokens={config.LLM_MAX_TOKENS} 截断",
                   file=sys.stderr)
         return {"text": text, "stop_reason": stop}
 
@@ -93,22 +97,22 @@ class OpenAICompatibleClient(LLMClient):
         )
         self._model = config.OPENAI_MODEL
 
-    def synthesize(self, system: str, user: str) -> str:
-        return self.synthesize_with_meta(system, user)["text"] or ""
+    def synthesize(self, system: str, user: str, temperature: float = None) -> str:
+        return self.synthesize_with_meta(system, user, temperature=temperature)["text"] or ""
 
-    def synthesize_with_meta(self, system: str, user: str) -> dict:
+    def synthesize_with_meta(self, system: str, user: str, temperature: float = None) -> dict:
         return self._create([
             {"role": "system", "content": system},
             {"role": "user", "content": user},
-        ])
+        ], temperature=temperature)
 
-    def synthesize_messages_with_meta(self, system: str, messages: list) -> dict:
+    def synthesize_messages_with_meta(self, system: str, messages: list, temperature: float = None) -> dict:
         # OpenAI 兼容 API 把 system 作为 messages 首条；若 messages 已含 system 则跳过
         if not any(m.get("role") == "system" for m in messages):
             messages = [{"role": "system", "content": system}] + messages
-        return self._create(messages)
+        return self._create(messages, temperature=temperature)
 
-    def _create(self, messages: list) -> dict:
+    def _create(self, messages: list, temperature: float = None) -> dict:
         # kimi-k2.6 默认开思考(reasoning_content)，思考 token 计入 max_tokens，评分/JSON 场景
         # 下思考吃光 max_tokens 致答案截断+重试爆炸+超时。对 kimi 默认关思考（答案直出 content）。
         kwargs: dict = {
@@ -116,6 +120,8 @@ class OpenAICompatibleClient(LLMClient):
             "max_tokens": config.LLM_MAX_TOKENS,
             "messages": messages,
         }
+        if temperature is not None:
+            kwargs["temperature"] = temperature
         if self._model.startswith("kimi") and not config.KIMI_THINKING_ENABLED:
             kwargs["extra_body"] = {"thinking": {"type": "disabled"}}
         resp = self._client.chat.completions.create(**kwargs)

@@ -32,6 +32,9 @@ STOCKS_DB_PATH = os.environ.get(
     "STOCKS_DB_PATH", "/home/smallsite-vue/data/followbot.db"
 )
 
+# 改进队列人工处置状态（admin-stocks.ts 写）：读已 applied 的 keyword_add 做正反馈命中检查
+IMPROVEMENTS_STATUS_PATH = config.OUTPUT_DIR / "improvements_status.json"
+
 # 报告生成的 LLM 模型 -> 评判应选的「不同」provider（auto 模式用）
 # report 用 glm -> judge 用 openai(DeepSeek)；report 用 deepseek/kimi -> judge 用 anthropic(GLM)
 _REPORT_TO_JUDGE_PROVIDER = {
@@ -301,6 +304,101 @@ def _normalize_dimensions(raw_dims: list) -> list:
     return out
 
 
+# action_items target 合法取值（按可否自动应用分组）
+_ACTION_TARGETS = {
+    "keyword_add", "keyword_remove",            # 可自动应用（改 sector_keywords.json）
+    "core_company_add", "core_company_remove",  # 半自动（仅 review）
+    "prompt_synth", "prompt_conclusion", "prompt_risk", "search_depth",  # 仅 review
+}
+_SEVERITIES = {"high", "medium", "low"}
+
+
+def _normalize_action_items(raw_items, fallback_sector: str = "") -> list:
+    """规整 LLM 返回的 action_items：校验 target/severity，补 sector。"""
+    if not isinstance(raw_items, list):
+        return []
+    out = []
+    seen = set()
+    for it in raw_items:
+        if not isinstance(it, dict):
+            continue
+        target = it.get("target")
+        if target not in _ACTION_TARGETS:
+            continue
+        value = str(it.get("value") or "").strip()
+        if not value or len(value) > 200:
+            continue
+        sector = str(it.get("sector") or fallback_sector or "").strip()
+        severity = it.get("severity")
+        if severity not in _SEVERITIES:
+            severity = "medium"
+        rationale = str(it.get("rationale") or "").strip()
+        source_dim = str(it.get("source_dim") or "").strip()
+        # 同 (target, sector, value) 去重
+        fp = f"{target}|{sector}|{value}"
+        if fp in seen:
+            continue
+        seen.add(fp)
+        out.append({
+            "target": target,
+            "sector": sector,
+            "value": value,
+            "severity": severity,
+            "rationale": rationale,
+            "source_dim": source_dim,
+        })
+    return out
+
+
+def _applied_keywords_for_sector(sector: str) -> list:
+    """读 improvements_status.json，返回该 sector 已 applied 的 keyword_add value 列表。
+
+    用于正反馈验证：这些是人工已应用到 sector_keywords.json 的关键词，检查新报告是否真采到。
+    防御：文件缺失/不可读 -> []（graceful，不阻塞评判）。
+    """
+    if not sector:
+        return []
+    try:
+        if not IMPROVEMENTS_STATUS_PATH.exists():
+            return []
+        data = json.loads(IMPROVEMENTS_STATUS_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    if not isinstance(data, dict):
+        return []
+    sector_norm = str(sector).strip().lower()
+    out = []
+    for _fp, st in data.items():
+        if not isinstance(st, dict):
+            continue
+        if st.get("status") != "applied" or st.get("target") != "keyword_add":
+            continue
+        if str(st.get("sector") or "").strip().lower() != sector_norm:
+            continue
+        v = str(st.get("value") or "").strip()
+        if v:
+            out.append(v)
+    return out
+
+
+def _keyword_hit_check(keyword: str, report_text: str) -> tuple:
+    """检查 keyword 是否在 report_text 命中。按 / ， 、 , 空格 拆 token，任一命中即 True。
+
+    返回 (present: bool, matched_token: str|None)。keyword 如「球硅/球形氧化铝」或
+    「安集科技 CMP抛光液」拆成 ['球硅','球形氧化铝'] / ['安集科技','CMP抛光液']，任一子串
+    命中即可（避免因复合词整体未出现而误判未覆盖）。
+    """
+    if not keyword or not report_text:
+        return False, None
+    tokens = [t.strip() for t in re.split(r"[/，、,\s]+", keyword) if t.strip()]
+    if not tokens:
+        tokens = [keyword.strip()]
+    for tok in tokens:
+        if tok and tok in report_text:
+            return True, tok
+    return False, None
+
+
 def judge_report(filepath: str, task_meta: dict = None) -> dict:
     """读报告 + 元数据 -> LLM 评判 -> 结构化输出（SPEC §7）。
 
@@ -310,6 +408,8 @@ def judge_report(filepath: str, task_meta: dict = None) -> dict:
         dimensions: [{key, name, score, reason, issues}],
         cross_path_conflicts: [str],
         suggestions: [str],
+        action_items: [{target, sector, value, severity, rationale, source_dim}],
+        applied_keyword_hits: [{keyword, present, matched_token}],  # 正反馈验证
         judged_at: iso,
         llm_provider: str,
         filename: str,
@@ -359,7 +459,7 @@ def judge_report(filepath: str, task_meta: dict = None) -> dict:
     )
 
     try:
-        raw = client.synthesize(JUDGE_SYSTEM, user)
+        raw = client.synthesize(JUDGE_SYSTEM, user, temperature=config.JUDGE_TEMPERATURE)
     except Exception as e:
         return {"quality_score": None, "error": f"LLM 调用失败: {e}",
                 "judged_at": judged_at, "llm_provider": provider_label, "filename": basename}
@@ -375,7 +475,7 @@ def judge_report(filepath: str, task_meta: dict = None) -> dict:
         try:
             raw = client.synthesize(
                 JUDGE_SYSTEM + "\n\n再次提醒：只输出一个 JSON 对象，不要任何前后文字、代码块或解释。",
-                user,
+                user, temperature=config.JUDGE_TEMPERATURE,
             )
             if raw:
                 data = json_from_llm(raw)
@@ -399,12 +499,29 @@ def judge_report(filepath: str, task_meta: dict = None) -> dict:
         suggestions = [suggestions]
     suggestions = [str(x) for x in suggestions if x]
 
+    action_items = _normalize_action_items(
+        data.get("action_items"),
+        fallback_sector=(task_meta or {}).get("sector") or "",
+    )
+
+    # 正反馈验证：该 sector 已 applied 的 keyword_add 是否在新报告命中（硬信号）
+    # 命中=keyword_add 真让 pipeline 采到该词；未命中=执行问题（转 search_depth/prompt）
+    applied_kw = _applied_keywords_for_sector((task_meta or {}).get("sector") or "")
+    applied_keyword_hits = []
+    for kw in applied_kw:
+        present, matched = _keyword_hit_check(kw, report_text)
+        applied_keyword_hits.append({
+            "keyword": kw, "present": present, "matched_token": matched,
+        })
+
     return {
         "quality_score": grade,
         "total_score": total_score,
         "dimensions": dimensions,
         "cross_path_conflicts": conflicts,
         "suggestions": suggestions,
+        "action_items": action_items,
+        "applied_keyword_hits": applied_keyword_hits,
         "judged_at": judged_at,
         "llm_provider": provider_label,
         "filename": basename,

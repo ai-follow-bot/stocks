@@ -29,6 +29,7 @@ from chain_agent.knowledge.archive import (
 )
 from chain_agent.llm.client import get_llm_client
 from chain_agent.llm.parse import json_from_llm, split_text_and_json
+from chain_agent.prompt_overrides import render_override_block, get_search_depth
 
 from . import prompts
 
@@ -224,7 +225,7 @@ def decompose_chain(chain: str) -> Optional[dict]:
 
 # ===== 2. 单环节搜索（供需/国产替代/业绩/CR3）=====
 def _segment_search(provider, provider_name: Optional[str], segment_name: str,
-                    cn_leaders: List[str], days: int) -> dict:
+                    cn_leaders: List[str], days: int, max_results: int = 5) -> dict:
     """对单个环节发 4 条搜索查询 + 拉国内龙头 akshare 个股新闻。
 
     evidence_id 机制（漏洞 3 修复）：
@@ -251,14 +252,14 @@ def _segment_search(provider, provider_name: Optional[str], segment_name: str,
             print(f"[deep-analyze] 缓存命中: {q[:60]}", file=sys.stderr)
             return cached
         try:
-            r = provider.search_with_ai_summary(q, max_results=5)
+            r = provider.search_with_ai_summary(q, max_results=max_results)
         except Exception as e:
             print(f"[deep-analyze] 搜索查询失败 ({q}): {e}", file=sys.stderr)
             r = None
         if (not r or not (r.get("results") or r.get("answer"))) and provider_name == "tavily":
             try:
                 z = ZhipuSearch()
-                r = z.search_with_ai_summary(q, max_results=5)
+                r = z.search_with_ai_summary(q, max_results=max_results)
                 provider_name = "zhipu"
             except Exception as e:
                 print(f"[deep-analyze] 智谱兜底失败 ({q}): {e}", file=sys.stderr)
@@ -349,7 +350,7 @@ def _segment_search(provider, provider_name: Optional[str], segment_name: str,
 
 
 def _customer_search(provider, provider_name: Optional[str],
-                     stock_name: str, stock_code: str) -> dict:
+                     stock_name: str, stock_code: str, max_results: int = 5) -> dict:
     """对单只股票发 2 条查询挖主要客户 + 客户营收占比。
 
     evidence_id 用 C1/C2/...（C 代表 Customer），与 _segment_search 的 T/A 区分，
@@ -368,14 +369,14 @@ def _customer_search(provider, provider_name: Optional[str],
             print(f"[deep-analyze] 缓存命中: {q[:60]}", file=sys.stderr)
             return cached
         try:
-            r = provider.search_with_ai_summary(q, max_results=5)
+            r = provider.search_with_ai_summary(q, max_results=max_results)
         except Exception as e:
             print(f"[deep-analyze] 客户搜索失败 ({q}): {e}", file=sys.stderr)
             r = None
         if (not r or not (r.get("results") or r.get("answer"))) and provider_name == "tavily":
             try:
                 z = ZhipuSearch()
-                r = z.search_with_ai_summary(q, max_results=5)
+                r = z.search_with_ai_summary(q, max_results=max_results)
                 provider_name = "zhipu"
             except Exception as e:
                 print(f"[deep-analyze] 客户搜索智谱兜底失败 ({q}): {e}", file=sys.stderr)
@@ -432,10 +433,12 @@ def search_all_segments(chain_data: dict, days: int) -> Dict[str, dict]:
           f"(provider={provider_name or 'none'})", file=sys.stderr)
 
     results = {}
+    # search_depth 运行时 override（仅本板块，来自改进闭环；无则 5）
+    seg_mr = get_search_depth(chain_data.get("chain_name", ""), 5)
     with ThreadPoolExecutor(max_workers=4) as ex:
         futs = {
             ex.submit(_segment_search, provider, provider_name,
-                      s["name"], s.get("cn_leaders", []), days): s["name"]
+                      s["name"], s.get("cn_leaders", []), days, seg_mr): s["name"]
             for s in segments
         }
         for fut in as_completed(futs):
@@ -699,7 +702,9 @@ def score_candidates(chain_data: dict, bottleneck_data: dict,
             search_data=search_summary,
             top_n=len(batch),
         )
-        meta = _llm_call_meta(prompts.SCORING_SYSTEM, user)
+        # prompt_risk 运行时 override（仅本板块，来自改进闭环；无则空串不影响原 prompt）
+        scoring_sys = prompts.SCORING_SYSTEM + render_override_block(chain_data.get("chain_name", ""), "prompt_risk")
+        meta = _llm_call_meta(scoring_sys, user)
         text = meta.get("text") or ""
         truncated = meta.get("stop_reason") == "max_tokens"
         if not text:
@@ -1100,10 +1105,12 @@ def analyze_stock(stock_input: str, days: int = 14) -> dict:
 
     # 该公司专属搜索数据（用与 chain 同样的 provider）
     provider, provider_name = _get_search_provider()
-    company_search = _segment_search(provider, provider_name, segment, [stock_name], days)
+    # search_depth 运行时 override（仅本板块，来自改进闭环；无则 5）
+    stock_mr = get_search_depth(chain_name, 5)
+    company_search = _segment_search(provider, provider_name, segment, [stock_name], days, stock_mr)
 
     # 客户结构搜索：挖主要客户 + 客户营收占比（C1/C2/... evidence）
-    customer_search = _customer_search(provider, provider_name, stock_name, stock_code)
+    customer_search = _customer_search(provider, provider_name, stock_name, stock_code, stock_mr)
     print(f"[deep-analyze] 客户搜索: 拉到 {customer_search.get('customer_count', 0)} 条 evidence",
           file=sys.stderr)
 
@@ -1126,7 +1133,9 @@ def analyze_stock(stock_input: str, days: int = 14) -> dict:
         scoring_text=scoring_text,
         prior=prior,
     )
-    verdict_md = _llm_call(prompts.STOCK_VERDICT_SYSTEM, user) or "(LLM 不可用，无法生成判断)"
+    # prompt_conclusion 运行时 override（仅本板块，来自改进闭环；无则空串不影响原 prompt）
+    verdict_sys = prompts.STOCK_VERDICT_SYSTEM + render_override_block(chain_name, "prompt_conclusion")
+    verdict_md = _llm_call(verdict_sys, user) or "(LLM 不可用，无法生成判断)"
 
     return {
         "mode": "stock",

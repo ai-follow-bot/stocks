@@ -10,6 +10,7 @@ from datetime import datetime
 
 from chain_agent import config
 from chain_agent.llm.client import get_llm_client
+from chain_agent.prompt_overrides import render_override_block
 
 from . import align, prompts
 
@@ -77,7 +78,9 @@ def _llm_synthesize(subject: str, aligned: list, raw: dict, mode: str = "chain")
             aligned_text=align.render_aligned_text(aligned, mode=mode),
             paths_summary=align.render_paths_summary(raw, mode=mode),
         )
-        return client.synthesize(prompts.SYNTH_SYSTEM, user)
+        # prompt_synth 运行时 override（仅本板块，来自改进闭环；无则空串，不影响原 prompt）
+        sys_prompt = prompts.SYNTH_SYSTEM + render_override_block(subject, "prompt_synth")
+        return client.synthesize(sys_prompt, user)
     except Exception as e:
         return f"(LLM 综合失败: {e})"
 

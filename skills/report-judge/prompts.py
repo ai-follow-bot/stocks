@@ -26,8 +26,22 @@ JUDGE_SYSTEM = """你是买方研究主管，评判下属（AI）写的 A 股投
    {"key": "risk", "score": 0-100, "reason": "1-2句", "issues": ["..."]}
  ],
  "cross_path_conflicts": ["跨视角未解释的矛盾1", "..."],
- "suggestions": ["可操作改进建议1", "..."]}
-total_score 不用你给，由代码按权重算。"""
+ "suggestions": ["可操作改进建议1", "..."],
+ "action_items": [
+   {"target": "keyword_add", "sector": "板块名", "value": "具体关键词", "severity": "high|medium|low", "rationale": "一句话", "source_dim": "coverage"}
+ ]}
+total_score 不用你给，由代码按权重算。
+
+action_items 规则（驱动 pipeline 改进闭环，必须由前面的 issues 推出，不得无中生有）：
+- target 取值（按可否自动应用）：
+  - keyword_add / keyword_remove：建议向板块关键词增/删（最常见，coverage 低分时给）。value 必须是具体词（如"CMP抛光液"），不是泛指（如"更多材料"）。
+  - core_company_add / core_company_remove：建议增/删核心公司（value 用公司名）。仅 review，不自动应用。
+  - prompt_synth：harness 综合视角矛盾的 prompt 改进建议（value 是改 prompt 的具体建议）。仅 review。
+  - prompt_conclusion / prompt_risk：报告结论/风险 prompt 改进建议。仅 review。
+  - search_depth：搜索深度/覆盖建议（value 是建议，如"加大 tavily_results 到 15"）。仅 review。
+- severity：high（多份报告反复出现的系统性问题）/medium/low。
+- sector：尽量填报告的板块（元数据里有）；个股报告可留空。
+- 没有可操作建议时输出空数组 []。不要凑数。"""
 
 JUDGE_USER_TEMPLATE = """# 报告元数据
 - 任务类型：{task_type}

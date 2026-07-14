@@ -2,8 +2,13 @@
 
 output/report_judge_archive.json:
   {<filename>: {quality_score, total_score, dimensions, cross_path_conflicts,
-                suggestions, judged_at, llm_provider, task_type, sector, task_id,
+                suggestions, action_items, applied_keyword_hits,
+                prev_total, prev_coverage, prev_ref,
+                judged_at, llm_provider, task_type, sector, task_id,
                 data_quality, report_mtime}}
+
+prev_* 取同 (sector, task_type) 最近一条好评判（重跑是新 task_id+filename，按此比对画走势）。
+applied_keyword_hits: 本报告对「该 sector 已 applied 的 keyword_add」的命中检查（正反馈硬信号）。
 
 key 用 filename（basename，不含目录），与前端报告列表的 filename 对齐。
 不碰 valuation_stock_archive / cycle_archive / deep archive。
@@ -69,15 +74,54 @@ def upsert_judgment(filename: str, judgment: dict, task_meta: dict) -> dict:
         entry["last_attempted_at"] = judgment.get("judged_at")
     else:
         # 成功（覆盖旧的）或失败且无旧评判（记录失败态）
+        # 重判轨迹：记前次 total/coverage 作「前次 X->本次 Y」走势
+        # 优先同 filename 旧评判（同报告重判）；无则取同 (sector, task_type) 最近一条好评判
+        # （重跑是新 task_id+新 filename，按 sector+task_type 比对才画得出走势）
+        prev_total = None
+        prev_coverage = None
+        prev_ref = None
+        if not failed:
+            if existing.get("total_score") is not None:
+                prev_total = existing.get("total_score")
+                for d in existing.get("dimensions") or []:
+                    if d.get("key") == "coverage":
+                        prev_coverage = d.get("score")
+                        break
+                prev_ref = {"filename": filename, "judged_at": existing.get("judged_at")}
+            else:
+                sector = (task_meta or {}).get("sector")
+                task_type = (task_meta or {}).get("task_type")
+                if sector and task_type:
+                    cands = []
+                    for fn, e in arc.items():
+                        if fn == filename or e.get("total_score") is None:
+                            continue
+                        if e.get("sector") != sector or e.get("task_type") != task_type:
+                            continue
+                        cands.append((e.get("judged_at") or "", fn, e))
+                    if cands:
+                        cands.sort(key=lambda x: x[0], reverse=True)
+                        _, ref_fn, ref_e = cands[0]
+                        prev_total = ref_e.get("total_score")
+                        for d in ref_e.get("dimensions") or []:
+                            if d.get("key") == "coverage":
+                                prev_coverage = d.get("score")
+                                break
+                        prev_ref = {"filename": ref_fn, "judged_at": ref_e.get("judged_at")}
         entry = {
             "quality_score": judgment.get("quality_score"),
             "total_score": judgment.get("total_score"),
             "dimensions": judgment.get("dimensions") or [],
             "cross_path_conflicts": judgment.get("cross_path_conflicts") or [],
             "suggestions": judgment.get("suggestions") or [],
+            "action_items": judgment.get("action_items") or [],
+            "applied_keyword_hits": judgment.get("applied_keyword_hits") or [],
             "judged_at": judgment.get("judged_at"),
             "llm_provider": judgment.get("llm_provider"),
             "error": judgment.get("error"),
+            "prev_total": prev_total,
+            "prev_coverage": prev_coverage,
+            "prev_ref": prev_ref,
             "task_type": (task_meta or {}).get("task_type"),
             "sector": (task_meta or {}).get("sector"),
             "task_id": (task_meta or {}).get("task_id"),
