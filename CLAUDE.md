@@ -20,6 +20,16 @@ Run anything in this repo with `/opt/stocks/.venv/bin/python` (or `source .venv/
 /opt/stocks/.venv/bin/python -m skills.deep-analyze --stock 300308          # 6-digit code or company name
 /opt/stocks/.venv/bin/python -m skills.deep-analyze --stock 中际旭创 --out verdict.md
 
+# Daily sector resonance (板块共振自进化)
+/opt/stocks/.venv/bin/python -m skills.daily_resonance                    # 运行今日共振（处理昨日新闻）
+/opt/stocks/.venv/bin/python -m skills.daily_resonance --date 2026-07-13  # 指定日期（回测用）
+/opt/stocks/.venv/bin/python -m skills.daily_resonance --json             # JSON输出
+/opt/stocks/.venv/bin/python -m skills.daily_resonance --no-evolve        # 跳过自进化
+/opt/stocks/.venv/bin/python -m skills.daily_resonance --no-llm           # 模板报告（无LLM调用）
+/opt/stocks/.venv/bin/python scripts/backtest_resonance.py                # 全量回测
+/opt/stocks/.venv/bin/python scripts/backtest_resonance.py --days 30      # 最近30天回测
+/opt/stocks/.venv/bin/python scripts/backtest_resonance.py --json         # JSON格式回测报告
+
 # A-share valuation lens (稀缺+前瞻+供需 估值排序，PE 仅作方向约束)
 /opt/stocks/.venv/bin/python -m skills.valuation-lens --chain optical-module --top-n 8 --out lens.md
 /opt/stocks/.venv/bin/python -m skills.valuation-lens --codes 300308,300502,688498 --out lens.md
@@ -101,6 +111,41 @@ Trust `config.py`, not the README, for current defaults. Notable points:
 
 - `serenity-perspective/` — US-stock analysis via Serenity methodology; has `scripts/analyze_dataset.py` and a `serenity.csv` source. Separate channel from the A-share pipeline.
 - `integrate-website/` — workflows for wiring changes into the `/home/smallsite-vue` frontend.
+
+## Daily resonance: cron & outputs
+
+The daily resonance system (`skills/daily_resonance/`) processes 财联社 news each trading day at 16:30 (T日), producing a sector resonance ranking with self-evolving weights.
+
+### cron (交易日 16:30)
+
+```bash
+# crontab -e
+30 16 * * 1-5 cd /opt/stocks && .venv/bin/python -m skills.daily_resonance >> output/daily_resonance_cron.log 2>&1
+```
+
+### Output directory: `skills/daily_resonance/output/`
+
+| File | Description |
+|------|-------------|
+| `resonance_{date}.json` | Structured TOP10 resonance data |
+| `resonance_{date}.md` | Daily briefing (Markdown) |
+| `evolution_state.json` | Self-evolution state (weights, history) |
+| `backtest_summary.json` | Backtesting results (from `scripts/backtest_resonance.py`) |
+
+### Architecture
+
+```
+财联社 news → Agent 1 (keyword match + LLM fallback) → sector events
+  → Agent 2 (deterministic resonance: density/sentiment/chain/diversity/importance)
+  → Agent 3 (LLM report or template)
+  → Evolution (T+1 feedback → Bayesian weight update → convergence)
+```
+
+Key points:
+- **Agent 1 LLM兜底**: keyword-unmatched news (≤100/day) get LLM batch classification via `chain_agent.llm.client.get_llm_client().synthesize()`.
+- **Self-evolution**: weights start at `[0.25, 0.25, 0.20, 0.15, 0.15]`, converge after 14+ days with Δw < 0.01 and avg accuracy ≥ 55%. Regime-change detection resets if 7 consecutive days < 50% accuracy.
+- **Cost**: ~¥0.10/day (Agent 1 LLM兜底 ¥0.02 + Agent 3 report ¥0.08).
+- **No chain_agent modifications**: reads only; all data from `data/` JSON files and hermes news.
 
 ## Conventions to preserve
 
