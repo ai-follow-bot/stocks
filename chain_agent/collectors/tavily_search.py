@@ -184,19 +184,22 @@ class TavilySearch:
         sector = config.to_under(sector)
         search_query = query or DEFAULT_QUERIES.get(sector, f"{sector} 行业 2025")
 
-        print(f"🔍 搜索 [{sector}]: {search_query}", file=sys.stderr)
+        print(f"🔍 搜索 [{sector}]: {search_query} (days={days})", file=sys.stderr)
         stats = self.key_manager.stats()
         print(f"📊 Key 统计: {stats['working_keys']}/{stats['total_keys']} 可用", file=sys.stderr)
 
         try:
             def do_search(client):
-                return client.search(
+                kwargs = dict(
                     query=search_query,
                     search_depth="advanced",
                     max_results=max_results,
                     include_answer=True,
                     include_raw_content=True,
                 )
+                if days is not None:
+                    kwargs["days"] = days
+                return client.search(**kwargs)
 
             response = self._execute_with_retry(do_search)
 
@@ -231,16 +234,26 @@ class TavilySearch:
                 "answer": "", "results": [],
             }
 
-    def search_with_ai_summary(self, query: str, max_results: int = 10) -> Optional[Dict]:
-        """任意 query 的 AI 摘要搜索"""
+    def search_with_ai_summary(self, query: str, max_results: int = 10,
+                                days: Optional[int] = None) -> Optional[Dict]:
+        """任意 query 的 AI 摘要搜索
+
+        Args:
+            query: 搜索词
+            max_results: 返回结果数
+            days: 时间窗口（天），None=不限（全量）
+        """
         try:
             def do_search(client):
-                return client.search(
+                kwargs = dict(
                     query=query,
                     max_results=max_results,
                     search_depth="advanced",
                     include_answer=True,
                 )
+                if days is not None:
+                    kwargs["days"] = days
+                return client.search(**kwargs)
             return self._execute_with_retry(do_search)
         except Exception as e:
             print(f"搜索出错: {e}", file=sys.stderr)

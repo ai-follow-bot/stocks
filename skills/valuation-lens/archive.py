@@ -6,6 +6,8 @@ key_facts / evidence_pool / score_history；与 deep-analyze 的 deep_* 维度
 板块级档案（output/valuation_sector_archive.json）存供需概要，下次注入作板块历史认知。
 
 24h 内跑过的标的跳过 Tavily（复用档案 evidence_pool），财联社始终实时拉（per-stock）。
+evidence 分层淘汰：S(稀缺)/F(前瞻) 慢变量 180 天，D(供需) 实时变量 30 天。
+score_history 保留 50 条，长期走势沉淀。
 """
 
 import json
@@ -29,8 +31,10 @@ _ARCHIVE_FRESH_HOURS = int(os.environ.get("VALUATION_ARCHIVE_FRESH_HOURS", "24")
 _ARCHIVE_RECALL_CAP = 30         # 每板块召回上限（按本板块最新 val 降序）
 _ARCHIVE_MAX_AGE_DAYS = 90       # 档案 last_run 超龄淘汰
 _EVIDENCE_POOL_CAP = 6           # 每维度 evidence 池容量
-_EVIDENCE_MAX_AGE_DAYS = 30      # evidence 超龄淘汰
-_SCORE_HISTORY_CAP = 10          # 分数走势保留条数
+# 分层淘汰：S(稀缺)/F(前瞻) 慢变量 180 天，D(供需) 实时变量 30 天
+_EVIDENCE_MAX_AGE_DAYS_SF = int(os.environ.get("VALUATION_EVIDENCE_MAX_AGE_DAYS_SF", "180"))
+_EVIDENCE_MAX_AGE_DAYS_D = int(os.environ.get("VALUATION_EVIDENCE_MAX_AGE_DAYS_D", "30"))
+_SCORE_HISTORY_CAP = 50          # 分数走势保留条数（从 10→50 长期沉淀）
 
 
 def _save_archive(arc: dict) -> None:
@@ -121,8 +125,13 @@ def _cailianshe_per_stock(stock_name: str, code: str, limit: int = 3,
     return out
 
 
-def _merge_pool(existing: list, new_items: list) -> list:
-    """合并 evidence 池：追加新条目，按 text 前 60 字去重，按 collected_at 降序保留 top N，超龄淘汰。"""
+def _merge_pool(existing: list, new_items: list, dim: str = "D") -> list:
+    """合并 evidence 池：追加新条目，按 text 前 60 字去重，按 collected_at 降序保留 top N，超龄淘汰。
+
+    Args:
+        dim: S(稀缺)/F(前瞻) 用长周期 180 天，D(供需) 用短周期 30 天
+    """
+    max_age = _EVIDENCE_MAX_AGE_DAYS_SF if dim in ("S", "F") else _EVIDENCE_MAX_AGE_DAYS_D
     by_key = {}
     for it in (existing or []):
         k = (it.get("text") or "")[:60]
@@ -132,7 +141,7 @@ def _merge_pool(existing: list, new_items: list) -> list:
         k = (it.get("text") or "")[:60]
         if k and k not in by_key:
             by_key[k] = it
-    cutoff = (datetime.now() - timedelta(days=_EVIDENCE_MAX_AGE_DAYS)).isoformat()
+    cutoff = (datetime.now() - timedelta(days=max_age)).isoformat()
     items = [it for it in by_key.values() if (it.get("collected_at") or "") >= cutoff]
     items.sort(key=lambda it: it.get("collected_at") or "", reverse=True)
     return items[:_EVIDENCE_POOL_CAP]
@@ -173,7 +182,7 @@ def _upsert_archive(sector: str, scored_candidates: List[dict],
             if used_archive and dim in ("S", "F"):
                 merged_pool[dim] = ex  # Tavily 复用档案，S/F 不重搜
             else:
-                merged_pool[dim] = _merge_pool(ex, nw)
+                merged_pool[dim] = _merge_pool(ex, nw, dim=dim)
         key_facts = {
             "S": _strip_ev((c.get("scarcity") or {}).get("reason", "")),
             "F": _strip_ev((c.get("forward") or {}).get("reason", "")),

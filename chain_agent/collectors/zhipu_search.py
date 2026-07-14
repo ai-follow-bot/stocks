@@ -57,11 +57,13 @@ class ZhipuSearch:
             count=max_results,
         )
 
-    def search_with_ai_summary(self, query: str, max_results: int = 10) -> Optional[Dict]:
+    def search_with_ai_summary(self, query: str, max_results: int = 10,
+                                days: Optional[int] = None) -> Optional[Dict]:
         """对应 TavilySearch.search_with_ai_summary。
 
         返回 {"results": [{title, content, url, media}], "answer": ""}
         智谱 web_search 不返回 AI 摘要，answer 固定为空字符串。
+        注意：智谱 web_search_pro 不支持 days 参数（忽略），如需按时间窗过滤需在 query 中带年份关键词。
 
         若传入/环境 key 认证失败，自动回退到项目默认 key 重试一次。
 
@@ -132,7 +134,7 @@ class ZhipuSearch:
         )
         print(f"🔍 [zhipu] 搜索 [{sector}]: {search_query}", file=sys.stderr)
 
-        r = self.search_with_ai_summary(search_query, max_results=max_results)
+        r = self.search_with_ai_summary(search_query, max_results=max_results, days=days)
         if r is None:
             return {
                 "sector": sector, "query": search_query, "error": "zhipu search failed",

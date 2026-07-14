@@ -3,6 +3,7 @@
 缓存目的：
 - 同板块一天内重跑（如调试、对比 LLM 模型）不重复花钱调 Tavily / 智谱
 - 跨板块复用相同子查询的结果
+- 长期缓存（30 天）让 Tavily evidence 沉淀，跨周期可复用
 
 缓存策略：
 - key = sha1(query) （不含 max_results，因为 max_results=5 命中 max_results=10 的缓存也安全）
@@ -13,7 +14,7 @@
 
 环境变量：
 - SEARCH_CACHE_DISABLED：任意非空值 → 关闭缓存（不读不写）
-- SEARCH_CACHE_TTL_HOURS：缓存有效期（小时），默认 12
+- SEARCH_CACHE_TTL_HOURS：缓存有效期（小时），默认 720（30 天）
 
 调用方：skills/deep-analyze/analyzer.py 的 _do_search 闭包
 """
@@ -41,9 +42,9 @@ def cache_enabled() -> bool:
 
 def cache_ttl_hours() -> int:
     try:
-        return max(1, int(os.environ.get("SEARCH_CACHE_TTL_HOURS", "12")))
+        return max(1, int(os.environ.get("SEARCH_CACHE_TTL_HOURS", "720")))
     except ValueError:
-        return 12
+        return 720
 
 
 def _cache_key(query: str) -> str:
