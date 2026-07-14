@@ -32,7 +32,9 @@ HERMES_NEWS_DIR = Path("/root/.hermes/data/investment-research/news")
 LATEST_NEWS_PATH = HERMES_NEWS_DIR / "latest_news.json"
 
 # ── LLM配置 ──
-LLM_PROVIDER = os.environ.get("DAILY_RESONANCE_LLM_PROVIDER", "openai")
+# 使用 get_llm_client() 继承 chain_agent.config 的 provider/base_url/model。
+# 以下为兜底值，仅在 get_llm_client() 不可用时生效。
+LLM_PROVIDER = os.environ.get("DAILY_RESONANCE_LLM_PROVIDER", "anthropic")
 LLM_MODEL = os.environ.get("DAILY_RESONANCE_LLM_MODEL", "deepseek-v4-flash")
 LLM_MAX_TOKENS = int(os.environ.get("DAILY_RESONANCE_LLM_MAX_TOKENS", "4096"))
 LLM_TEMPERATURE = 0.3

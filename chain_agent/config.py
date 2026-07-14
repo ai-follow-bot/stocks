@@ -83,9 +83,11 @@ IWENCAI_API_KEY = os.environ.get("IWENCAI_API_KEY", "")
 
 # ===== LLM 配置 =====
 # provider: auto | anthropic | openai | kimi | none
-# 默认 openai -> DeepSeek-v4-flash（OpenAI 兼容 endpoint）。
-# auto 优先 Anthropic（智谱 GLM），其次 OpenAI 兼容；anthropic 走智谱；kimi 显式走 Moonshot。
-LLM_PROVIDER = os.environ.get("CHAIN_AGENT_LLM_PROVIDER", "openai")
+# 默认 anthropic -> Volcengine ark（Anthropic 兼容 endpoint，统一接入多模型）。
+# auto 优先 Anthropic（Volcengine），其次 OpenAI 兼容；kimi 显式走 Moonshot。
+# Claude Code 宿主环境通过 settings.json 注入 ANTHROPIC_BASE_URL/ANTHROPIC_API_KEY，
+# 项目默认指向 Volcengine，key 必须来自环境变量（settings.json 或 .env）。
+LLM_PROVIDER = os.environ.get("CHAIN_AGENT_LLM_PROVIDER", "anthropic")
 LLM_MAX_TOKENS = int(os.environ.get("CHAIN_AGENT_LLM_MAX_TOKENS", "16384"))
 # 单次 LLM 调用超时（秒）：挂起的连接快失败，让上层降级/重试生效。
 # 注意：kimi 在 harness 多路径并发抢配额下，单次长输出（decompose/bottleneck/评分）
@@ -102,28 +104,27 @@ JUDGE_TEMPERATURE = float(os.environ.get("JUDGE_TEMPERATURE", "0.2"))
 # 设 KIMI_THINKING_ENABLED=1 可重新开启（如需深度推理场景）。
 KIMI_THINKING_ENABLED = os.environ.get("KIMI_THINKING_ENABLED", "").strip().lower() in ("1", "true", "yes", "on")
 
-# Anthropic（指向智谱 anthropic 兼容 endpoint，跑 GLM-5.2；
-# key 与 ZHIPU_API_KEY 同源，来自 ~/.claude/settings.json）
-# 注意：此处不使用环境变量 ANTHROPIC_BASE_URL，避免 Claude Code 等宿主环境
-# 注入的 endpoint（如 api.kimi.com/coding）与项目默认 key 不匹配导致 401。
-# 如需自定义，请设置 CHAIN_AGENT_ANTHROPIC_BASE_URL。
-ANTHROPIC_API_KEY = os.environ.get(
-    "ANTHROPIC_API_KEY",
-    "a70c6eb7fa354119b4f39db731deb6ae.KNsywSEW8wi5EscB",
+# Anthropic（指向 Volcengine ark Anthropic 兼容 endpoint，统一接入多模型；
+# 不设默认 key，必须来自 env。Claude Code 宿主环境通过 settings.json 注入
+# ANTHROPIC_AUTH_TOKEN（Volcengine 特定变量），也作为 ANTHROPIC_API_KEY 的 fallback。
+ANTHROPIC_API_KEY = (
+    os.environ.get("ANTHROPIC_API_KEY", "")
+    or os.environ.get("ANTHROPIC_AUTH_TOKEN", "")
 )
 ANTHROPIC_BASE_URL = os.environ.get(
-    "CHAIN_AGENT_ANTHROPIC_BASE_URL", "https://open.bigmodel.cn/api/anthropic"
+    "CHAIN_AGENT_ANTHROPIC_BASE_URL",
+    "https://ark.cn-beijing.volces.com/api/plan",
 )
-ANTHROPIC_MODEL = os.environ.get("CHAIN_AGENT_ANTHROPIC_MODEL", "GLM-5.2")
+ANTHROPIC_MODEL = os.environ.get("CHAIN_AGENT_ANTHROPIC_MODEL", "deepseek-v4-flash")
 
-# OpenAI 兼容（默认 DeepSeek-v4-flash；也覆盖 Kimi/Moonshot/GLM 等）
-# DeepSeek 是推理模型，思考走 reasoning_content，答案在 message.content（OpenAICompatibleClient 直取）。
-# 切回 Kimi：设 OPENAI_BASE_URL=https://api.moonshot.cn/v1 + KIMI_API_KEY + CHAIN_AGENT_OPENAI_MODEL=kimi-k2.6
+# OpenAI 兼容（备选 provider；默认 provider 已切至 anthropic → Volcengine）
+# 切回 DeepSeek：设 CHAIN_AGENT_LLM_PROVIDER=openai（使用以下配置）
+# 切回 Kimi：设 CHAIN_AGENT_LLM_PROVIDER=kimi + OPENAI_BASE_URL=https://api.moonshot.cn/v1 + KIMI_API_KEY
 OPENAI_API_KEY = (
     os.environ.get("OPENAI_API_KEY", "")
     or os.environ.get("DEEPSEEK_API_KEY", "")
     or os.environ.get("KIMI_API_KEY", "")
-    or "sk-4ce0c5b2a9b944b2966f570d7cf6af96"  # DeepSeek 默认 key
+    or ""  # 无默认 key；如需自包含部署，可在此填入 DeepSeek key
 )
 OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL", "https://api.deepseek.com")
 OPENAI_MODEL = os.environ.get("CHAIN_AGENT_OPENAI_MODEL", "deepseek-v4-flash")
@@ -150,8 +151,9 @@ def clear_proxy_env():
 clear_proxy_env()
 
 # 把 anthropic base_url 同步到环境变量，让 anthropic SDK 自动读取
-# （SDK 只认 os.environ 或构造参数，不认模块变量；Claude Code 等宿主环境
-# 可能注入错误的 ANTHROPIC_BASE_URL，此处强制使用项目默认值）
+# （SDK 只认 os.environ 或构造参数，不认模块变量）
+# 注意：不同于旧版，此处不再 force-override 宿主环境注入的值。
+# Claude Code 的 settings.json 已正确指向 Volcengine，自然生效。
 if ANTHROPIC_BASE_URL:
     os.environ["ANTHROPIC_BASE_URL"] = ANTHROPIC_BASE_URL
 
