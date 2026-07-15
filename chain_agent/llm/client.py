@@ -72,7 +72,15 @@ class AnthropicClient(LLMClient):
         if temperature is not None:
             kwargs["temperature"] = temperature
         resp = self._client.messages.create(**kwargs)
-        text = resp.content[0].text if resp.content else ""
+        # 推理模型（如 deepseek-v4-flash）返回 content=[ThinkingBlock, TextBlock, ...]
+        # 取第一个 TextBlock 的 text，跳过 ThinkingBlock
+        text = ""
+        if resp.content:
+            from anthropic.types import TextBlock
+            for block in resp.content:
+                if isinstance(block, TextBlock):
+                    text = block.text
+                    break
         stop = getattr(resp, "stop_reason", None)
         if stop == "max_tokens":
             print(f"[LLM] [截断] Anthropic 响应被 max_tokens={config.LLM_MAX_TOKENS} 截断",
