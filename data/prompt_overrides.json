@@ -40,5 +40,47 @@
     "value": "要求在报告开头或数据缺口段落明确标注数据质量局限及数据窗口期",
     "rationale": "元数据显示数据质量未知，但正文未充分提示数据风险",
     "applied_at": "2026-07-14T15:26:18.423Z"
+  },
+  "prompt_synth|mlcc|在生成报告时，需提供evidence编号对应的具体数据或来源，避免空引": {
+    "sector": "mlcc",
+    "target": "prompt_synth",
+    "value": "在生成报告时，需提供evidence编号对应的具体数据或来源，避免空引",
+    "rationale": "evidence空引严重降低可信度",
+    "applied_at": "2026-07-15T08:22:28.127Z"
+  },
+  "prompt_conclusion|mlcc|在报告末尾增加明确的投资建议（推荐/回避/观望）及目标价": {
+    "sector": "mlcc",
+    "target": "prompt_conclusion",
+    "value": "在报告末尾增加明确的投资建议（推荐/回避/观望）及目标价",
+    "rationale": "投资者无法直接操作",
+    "applied_at": "2026-07-15T08:22:29.407Z"
+  },
+  "search_depth|mlcc|增加对候选标的EPS、营收增长率、市占率等关键财务数据的搜索": {
+    "sector": "mlcc",
+    "target": "search_depth",
+    "value": "增加对候选标的EPS、营收增长率、市占率等关键财务数据的搜索",
+    "rationale": "提升分析深度",
+    "applied_at": "2026-07-15T08:22:31.452Z"
+  },
+  "prompt_synth|mlcc|在卡脖子分析中，要求明确每个evidence编号对应的具体数据来源或引用": {
+    "sector": "mlcc",
+    "target": "prompt_synth",
+    "value": "在卡脖子分析中，要求明确每个evidence编号对应的具体数据来源或引用",
+    "rationale": "提高证据可验证性",
+    "applied_at": "2026-07-15T08:24:01.019Z"
+  },
+  "prompt_conclusion|mlcc|在报告末尾增加明确的投资建议（推荐/回避/观望）": {
+    "sector": "mlcc",
+    "target": "prompt_conclusion",
+    "value": "在报告末尾增加明确的投资建议（推荐/回避/观望）",
+    "rationale": "提高可操作性",
+    "applied_at": "2026-07-15T08:24:02.256Z"
+  },
+  "prompt_conclusion|mlcc|在报告末尾增加一段明确的投资建议，包括对每个标的的推荐/回避/观望判断，并简要说明核心逻辑": {
+    "sector": "mlcc",
+    "target": "prompt_conclusion",
+    "value": "在报告末尾增加一段明确的投资建议，包括对每个标的的推荐/回避/观望判断，并简要说明核心逻辑",
+    "rationale": "缺乏结论导致可操作性低，投资者无法直接使用",
+    "applied_at": "2026-07-15T09:19:27.917Z"
   }
 }

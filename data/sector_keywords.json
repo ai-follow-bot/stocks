@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "update_time": "2026-07-14T15:33:03.970Z",
+  "update_time": "2026-07-15T08:22:25.724Z",
   "sectors": {
     "optical_module": [
       "光模块",
@@ -2929,6 +2929,16 @@
         "code": "002138",
         "name": "顺络电子",
         "segment": "电感"
+      },
+      {
+        "code": "605376",
+        "name": "博迁新材",
+        "segment": ""
+      },
+      {
+        "code": "300726",
+        "name": "宏达电子",
+        "segment": ""
       }
     ],
     "optical_chip": [
