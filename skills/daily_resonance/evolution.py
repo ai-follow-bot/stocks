@@ -11,12 +11,14 @@
 import json
 import sys
 import os
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
 from .config import (
     OUTPUT_DIR,
+    DATA_DIR,
     INITIAL_WEIGHTS,
     CONVERGENCE_DAYS,
     CONVERGENCE_DELTA,
@@ -147,87 +149,137 @@ def _compute_accuracy_from_market(
     current_date: str,
 ) -> Optional[float]:
     """
-    从市场数据计算TOP3预测准确率。
+    用个股行情计算TOP3预测准确率。
 
-    用akshare获取申万行业指数的日涨跌幅数据。
-    如果无法获取（如非交易日），返回None。
+    对每个TOP3板块，取 leader 股票（来自 sector_overflow_config.json），
+    查询个股日涨跌幅。如果超过半数 leader 上涨，该板块计为"上涨"。
+    方向准确率 = 上涨板块数 / 有数据板块数。
 
-    准确率计算:
-    - 方向准确率: TOP3中当日上涨的比例
-    - 排名准确率: TOP1是否确实是涨幅最大的
-    - 综合准确率 = 0.7 × 方向 + 0.3 × 排名
+    如果无法获取行情数据（非交易日等），返回None。
     """
+    # chain_agent.config 会调用 clear_proxy_env() 确保 akshare 直连
+    # 但二次导入不生效，显式清代理
+    for k in ["HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy",
+              "all_proxy", "ALL_PROXY"]:
+        os.environ.pop(k, None)
+    os.environ.setdefault("no_proxy", "localhost,127.0.0.1")
+
     try:
         import akshare as ak
-        # 获取板块涨跌幅数据
-        df = ak.index_analysis_daily_sw()
-
-        if df is None or df.empty:
-            return None
-
-        # 计算方向准确率
-        # 用申万二级行业分类匹配我们的板块
-        # 简化处理：只统计TOP3中上涨的比例
-        up_count = 0
-        for sector in prev_top3:
-            # 查找匹配的申万行业
-            matched = _match_to_sw(sector, df)
-            if matched is not None:
-                change_pct = matched.get("change_pct", 0)
-                if change_pct > 0:
-                    up_count += 1
-
-        # 方向准确率
-        direction_acc = up_count / max(len(prev_top3), 1)
-
-        # 综合准确率（简化：只用方向准确率）
-        return direction_acc
-
     except ImportError:
         print("[进化] akshare不可用，无法获取市场数据", file=sys.stderr)
         return None
-    except Exception as e:
-        print(f"[进化] 获取市场数据失败: {e}", file=sys.stderr)
+
+    # 加载板块龙头股配置
+    overflow_path = DATA_DIR / "sector_overflow_config.json"
+    if not overflow_path.exists():
+        print(f"[进化] 未找到板块配置: {overflow_path}", file=sys.stderr)
         return None
+
+    with open(overflow_path, "r", encoding="utf-8") as f:
+        overflow_config = json.load(f)
+
+    # ── 板块key映射：ecosystem (underscore) → overflow_config (混合命名) ──
+    # overflow_config 的 key 与 ecosystem 不完全一致，需要手动映射
+    SECTOR_TO_OVERFLOW = {
+        "optical_module": "optical-module",
+        "pcb": "pcb",
+        "liquid_cooling": "liquid-cooling",
+        "cooling_components": "liquid-cooling",
+        "storage": "storage",
+        "ocs": "ocs",
+        "mlcc": "mlcc",
+        "cpo": "CPO",
+        "cpu": "CPU",
+        "hbm": "HBM",
+        "hbn": "HBN",
+        "npo": "NPO",
+        "tgv": "TGV",
+        "copper_foil": "高端铜箔",
+        "hbm_components": "HBM",
+        "optical_chip": "光芯片",
+        "功率半导体": "功率半导体",
+        "机器人": "机器人",
+        "物理AI": "物理AI",
+        "特种集成电路": "特种集成电路",
+        "玻璃基板": "玻璃基板",
+        "薄膜铌酸锂": "薄膜铌酸锂",
+        "高端铜箔": "高端铜箔",
+        "半导体材料": "半导体材料",
+        "半导体设备": "半导体设备",
+    }
+
+    # 遍历每个TOP3板块，用 leader 股票涨跌幅判断板块方向
+    up_count = 0
+    sector_count = 0
+
+    for sk in prev_top3:
+        hk = SECTOR_TO_OVERFLOW.get(sk)
+        if not hk:
+            hk = sk.replace("_", "-")
+        sector_config = overflow_config.get(hk)
+        if not sector_config:
+            continue
+
+        leaders = sector_config.get("leaders", [])
+        codes = []
+        for l in leaders:
+            if isinstance(l, dict):
+                code = l.get("code", "")
+            else:
+                code = str(l)
+            if code:
+                codes.append(code)
+
+        if not codes:
+            continue
+
+        # 查询每个 leader 股票的日涨跌幅（带重试）
+        up_stocks = 0
+        total_stocks = 0
+
+        # akshare 的 start_date/end_date 需要 YYYYMMDD 格式（无连字符）
+        ak_date = prev_date.replace("-", "")
+
+        for code in codes:
+            # 重试最多3次，应对 RemoteDisconnected 等瞬时网络波动
+            df = None
+            for attempt in range(3):
+                try:
+                    df = ak.stock_zh_a_hist(
+                        symbol=code,
+                        period="daily",
+                        start_date=ak_date,
+                        end_date=ak_date,
+                        adjust="qfq",
+                    )
+                    if df is not None and not df.empty:
+                        break
+                except Exception:
+                    if attempt < 2:
+                        time.sleep(1)
+                    continue
+
+            if df is not None and not df.empty:
+                total_stocks += 1
+                change_pct = df.iloc[-1].get("涨跌幅", 0)
+                if isinstance(change_pct, (int, float)) and change_pct > 0:
+                    up_stocks += 1
+
+        if total_stocks > 0:
+            sector_count += 1
+            if up_stocks / total_stocks > 0.5:
+                up_count += 1
+
+    if sector_count == 0:
+        return None
+
+    return up_count / sector_count
 
 
 def _match_to_sw(sector_key: str, df) -> Optional[dict]:
-    """
-    将我们的板块key匹配到申万行业分类。
-    简化实现：通过板块关键词匹配。
-    """
-    # 如果df是DataFrame，遍历行
-    try:
-        import pandas as pd
-        if isinstance(df, pd.DataFrame):
-            sector_name_col = None
-            change_col = None
-            for col in df.columns:
-                if "行业" in str(col) or "板块" in str(col) or "名称" in str(col):
-                    sector_name_col = col
-                if "涨跌幅" in str(col) or "change" in str(col).lower():
-                    change_col = col
-
-            if sector_name_col is None:
-                return None
-
-            # 尝试用板块key的中文名匹配
-            from .data import load_ecosystem, get_sector_name
-            ecosystem = load_ecosystem()
-            name = get_sector_name(sector_key, ecosystem)
-
-            for _, row in df.iterrows():
-                row_name = str(row.get(sector_name_col, ""))
-                if name and name in row_name:
-                    change = row.get(change_col, 0)
-                    try:
-                        return {"change_pct": float(change)}
-                    except (ValueError, TypeError):
-                        return None
-
-        return None
-    except ImportError:
-        return None
+    """已废弃 — 改用个股行情计算准确率"""
+    return None
 
 
 def _update_weights(state: dict, accuracy: float) -> dict:

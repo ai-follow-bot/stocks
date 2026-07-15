@@ -58,7 +58,7 @@ def compute_resonance(
             continue
 
         # ── 维度1: 事件密度 ──
-        avg_30d = (history or {}).get(sector_key, {}).get("avg_30d_count", max(total, 1))
+        avg_30d = (history or {}).get(sector_key, {}).get("avg_30d", max(total, 1))
         density_raw = total / max(avg_30d, 1)
         density = min(density_raw, DENSITY_CAP) / DENSITY_CAP  # 归一化到 [0, 1]
 

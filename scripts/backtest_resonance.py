@@ -357,6 +357,10 @@ def main():
         json.dump(summary, f, ensure_ascii=False, indent=2)
     print(f"\n[回测] 结果已保存: {summary_path}", file=sys.stderr)
 
+    # 持久化进化状态（供单日运行接力）
+    from skills.daily_resonance.evolution import save_state
+    save_state(state)
+
 
 if __name__ == "__main__":
     main()

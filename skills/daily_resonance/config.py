@@ -13,7 +13,7 @@ STOCKS_DIR = SKILL_DIR.parent.parent  # /opt/stocks
 DATA_DIR = STOCKS_DIR / "data"
 
 # ── 初始权重 [事件密度, 情绪强度, 产业链共振, 事件多样性, 重要性加权] ──
-INITIAL_WEIGHTS = [0.25, 0.25, 0.20, 0.15, 0.15]
+INITIAL_WEIGHTS = [0.29, 0.29, 0.24, 0.18, 0.00]
 
 # ── 收敛参数 ──
 CONVERGENCE_DAYS = 14          # 连续多少天判定收敛

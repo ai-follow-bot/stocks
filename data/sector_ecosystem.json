@@ -791,5 +791,31 @@
       "嵌入式计算机"
     ],
     "technologies": []
+  },
+  "光芯片": {
+    "name": "光芯片",
+    "tier": 2,
+    "description": "用户自定义板块（待补充产业链数据）",
+    "include_sectors": [
+      "光芯片"
+    ],
+    "upstream": [],
+    "downstream": [],
+    "related": [],
+    "key_products": [],
+    "technologies": []
+  },
+  "高端铜箔": {
+    "name": "高端铜箔",
+    "tier": 2,
+    "description": "用户自定义板块（待补充产业链数据）",
+    "include_sectors": [
+      "高端铜箔"
+    ],
+    "upstream": [],
+    "downstream": [],
+    "related": [],
+    "key_products": [],
+    "technologies": []
   }
 }

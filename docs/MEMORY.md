@@ -1,0 +1,2 @@
+- [workflow-spec-first](workflow-spec-first.md) — Always write SPEC before implementing
+- [daily-resonance-system](daily-resonance-system.md) — Daily sector resonance system at /opt/stocks/skills/daily_resonance/

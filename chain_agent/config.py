@@ -112,21 +112,25 @@ ANTHROPIC_API_KEY = (
     or os.environ.get("ANTHROPIC_AUTH_TOKEN", "")
 )
 ANTHROPIC_BASE_URL = os.environ.get(
-    "CHAIN_AGENT_ANTHROPIC_BASE_URL",
+    "ANTHROPIC_BASE_URL",
     "https://ark.cn-beijing.volces.com/api/plan",
 )
 ANTHROPIC_MODEL = os.environ.get("CHAIN_AGENT_ANTHROPIC_MODEL", "deepseek-v4-flash")
 
 # OpenAI 兼容（备选 provider；默认 provider 已切至 anthropic → Volcengine）
-# 切回 DeepSeek：设 CHAIN_AGENT_LLM_PROVIDER=openai（使用以下配置）
+# 切回 DeepSeek：设 CHAIN_AGENT_LLM_PROVIDER=openai + OPENAI_BASE_URL=https://api.deepseek.com + DEEPSEEK_API_KEY
 # 切回 Kimi：设 CHAIN_AGENT_LLM_PROVIDER=kimi + OPENAI_BASE_URL=https://api.moonshot.cn/v1 + KIMI_API_KEY
 OPENAI_API_KEY = (
     os.environ.get("OPENAI_API_KEY", "")
+    or ANTHROPIC_API_KEY  # 默认走 Volcengine ark（与 anthropic 共享 key）
     or os.environ.get("DEEPSEEK_API_KEY", "")
     or os.environ.get("KIMI_API_KEY", "")
-    or ""  # 无默认 key；如需自包含部署，可在此填入 DeepSeek key
+    or ""
 )
-OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL", "https://api.deepseek.com")
+OPENAI_BASE_URL = os.environ.get(
+    "OPENAI_BASE_URL",
+    "https://ark.cn-beijing.volces.com/api/v3/",
+)
 OPENAI_MODEL = os.environ.get("CHAIN_AGENT_OPENAI_MODEL", "deepseek-v4-flash")
 
 

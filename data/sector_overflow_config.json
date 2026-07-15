@@ -555,5 +555,15 @@
     ],
     "second_tier": [],
     "tech_option_stocks": []
+  },
+  "光芯片": {
+    "leaders": [],
+    "second_tier": [],
+    "tech_option_stocks": []
+  },
+  "高端铜箔": {
+    "leaders": [],
+    "second_tier": [],
+    "tech_option_stocks": []
   }
 }
